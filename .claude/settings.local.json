@@ -10,7 +10,8 @@
       "Bash(npx expo install react-native-gesture-handler react-native-reanimated react-native-screens --fix)",
       "Bash(git init:*)",
       "Bash(git branch:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ]
   }
 }
