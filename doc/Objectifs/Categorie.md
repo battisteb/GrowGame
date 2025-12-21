@@ -1,0 +1,6 @@
+[[Etirements]]
+[[Sport]]
+[[Lecture]]
+[[Etudes]]
+[[Meditation]]
+[[XP]]
