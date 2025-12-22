@@ -4,17 +4,17 @@
 
 ## Stack Technologique
 
-| Composant | Technologie | Version | Justification |
-|-----------|-------------|---------|---------------|
-| **Framework Mobile** | React Native + Expo | SDK 52+ | Cross-platform, écosystème React connu de l'équipe |
-| **Langage** | TypeScript | 5.x | Typage statique, meilleure maintenabilité |
-| **Navigation** | Expo Router | 4.x | File-based routing, conventions claires |
-| **État global** | Zustand | 5.x | Léger, simple, pas de boilerplate |
-| **Backend** | Supabase | - | Auth + DB + Storage + Realtime intégrés |
-| **Base de données** | PostgreSQL (Supabase) | - | Requêtes complexes, relations, RLS |
-| **DB locale** | WatermelonDB | - | Offline-first, sync automatique |
-| **Notifications** | Expo Notifications | - | Intégré à Expo |
-| **Vérification IA** | Google Cloud Vision API | - | MVP, migration modèle embarqué possible |
+| Composant            | Technologie             | Version | Justification                                      |
+| -------------------- | ----------------------- | ------- | -------------------------------------------------- |
+| **Framework Mobile** | React Native + Expo     | SDK 52+ | Cross-platform, écosystème React connu de l'équipe |
+| **Langage**          | TypeScript              | 5.x     | Typage statique, meilleure maintenabilité          |
+| **Navigation**       | Expo Router             | 4.x     | File-based routing, conventions claires            |
+| **État global**      | Zustand                 | 5.x     | Léger, simple, pas de boilerplate                  |
+| **Backend**          | Supabase                | -       | Auth + DB + Storage + Realtime intégrés            |
+| **Base de données**  | PostgreSQL (Supabase)   | -       | Requêtes complexes, relations, RLS                 |
+| **DB locale**        | WatermelonDB            | -       | Offline-first, sync automatique                    |
+| **Notifications**    | Expo Notifications      | -       | Intégré à Expo                                     |
+| **Vérification IA**  | Google Cloud Vision API | -       | MVP, migration modèle embarqué possible            |
 
 ---
 
@@ -81,16 +81,16 @@ GrowGame/
 
 ### Nommage
 
-| Type | Convention | Exemple |
-|------|------------|---------|
-| Variables, fonctions | `camelCase` | `getUserXp()`, `currentStreak` |
-| Composants React | `PascalCase` | `CharacterAvatar`, `QuestCard` |
-| Fichiers composants | `PascalCase.tsx` | `HabitList.tsx` |
-| Fichiers utilitaires | `camelCase.ts` | `xpCalculator.ts` |
-| Constantes | `SCREAMING_SNAKE_CASE` | `MAX_STREAK_BONUS` |
-| Types/Interfaces | `PascalCase` | `type Character = {...}` |
-| Dossiers | `camelCase` | `features/habits/` |
-| Tables DB | `snake_case` | `habit_logs`, `domain_skills` |
+| Type                 | Convention             | Exemple                        |
+| -------------------- | ---------------------- | ------------------------------ |
+| Variables, fonctions | `camelCase`            | `getUserXp()`, `currentStreak` |
+| Composants React     | `PascalCase`           | `CharacterAvatar`, `QuestCard` |
+| Fichiers composants  | `PascalCase.tsx`       | `HabitList.tsx`                |
+| Fichiers utilitaires | `camelCase.ts`         | `xpCalculator.ts`              |
+| Constantes           | `SCREAMING_SNAKE_CASE` | `MAX_STREAK_BONUS`             |
+| Types/Interfaces     | `PascalCase`           | `type Character = {...}`       |
+| Dossiers             | `camelCase`            | `features/habits/`             |
+| Tables DB            | `snake_case`           | `habit_logs`, `domain_skills`  |
 
 ### Structure d'une Feature
 
@@ -218,7 +218,7 @@ CREATE TABLE equipments (
 - **slot**: `couvre_chef`, `haut`, `bas`, `chaussures`, `accessoire`
 - **item_type**: `cosmetic`, `decoration`, `joker`
 - **rarity**: `common`, `rare`, `epic`, `legendary`
-- **mood**: `happy`, `neutral`, `tired`, `sad`
+- **mood**: `happy`, `neutral`, `tired`
 
 ---
 
@@ -229,7 +229,7 @@ CREATE TABLE equipments (
 ```typescript
 // XP requis pour atteindre un niveau
 const xpForLevel = (level: number): number => {
-  return Math.floor(100 * (level ** 2) / 2);
+  return Math.floor((100 * level ** 2) / 2);
 };
 
 // Niveau 1 → 50 XP
@@ -240,13 +240,13 @@ const xpForLevel = (level: number): number => {
 
 ### Récompenses par action
 
-| Action | XP | Coins |
-|--------|-----|-------|
-| Habitude validée (difficulté 1) | +10 | +1 |
-| Habitude validée (difficulté 2) | +20 | +2 |
-| Habitude validée (difficulté 3) | +30 | +3 |
-| Journal quotidien | +5 | +0 |
-| Streak 7 jours | +0 | +10 (bonus) |
+| Action                          | XP  | Coins       |
+| ------------------------------- | --- | ----------- |
+| Habitude validée (difficulté 1) | +10 | +1          |
+| Habitude validée (difficulté 2) | +20 | +2          |
+| Habitude validée (difficulté 3) | +30 | +3          |
+| Journal quotidien               | +5  | +0          |
+| Streak 7 jours                  | +0  | +10 (bonus) |
 
 ### Decay des compétences
 
@@ -262,22 +262,22 @@ const decayLevel = (currentLevel: number): number => {
 
 ## Répartition du Travail
 
-| Développeur | Features principales |
-|-------------|---------------------|
-| Dev A | Auth, Character, Progression (XP, niveaux) |
-| Dev B | Habits, Quests, Photo verification |
-| Ensemble | Setup initial, Architecture DB, Design system |
+| Développeur | Features principales                          |
+| ----------- | --------------------------------------------- |
+| Dev A       | Auth, Character, Progression (XP, niveaux)    |
+| Dev B       | Habits, Quests, Photo verification            |
+| Ensemble    | Setup initial, Architecture DB, Design system |
 
 ---
 
 ## Décisions Techniques Clés
 
-| Date | Décision | Raison |
-|------|----------|--------|
-| 2025-12-21 | React Native + Expo | Équipe connaît React, Expo simplifie le dev |
+| Date       | Décision             | Raison                                           |
+| ---------- | -------------------- | ------------------------------------------------ |
+| 2025-12-21 | React Native + Expo  | Équipe connaît React, Expo simplifie le dev      |
 | 2025-12-21 | Supabase vs Firebase | Open-source, PostgreSQL, moins de vendor lock-in |
-| 2025-12-21 | Zustand vs Redux | Simplicité, 2 devs, pas besoin de complexité |
-| 2025-12-21 | Offline-first | App d'habitudes doit marcher sans connexion |
+| 2025-12-21 | Zustand vs Redux     | Simplicité, 2 devs, pas besoin de complexité     |
+| 2025-12-21 | Offline-first        | App d'habitudes doit marcher sans connexion      |
 
 ---
 

@@ -20,6 +20,7 @@
 **Participants** : Équipe + Claude (assistant IA)
 
 **Décisions prises** :
+
 - **Framework** : React Native + Expo (SDK 52+)
   - Raison : équipe connaît React, Expo simplifie le développement mobile
 - **Backend** : Supabase
@@ -31,6 +32,7 @@
 - **Offline-first** : WatermelonDB pour la DB locale
 
 **Alternatives écartées** :
+
 - Flutter : équipe ne connaît pas Dart
 - Firebase : vendor lock-in Google trop fort
 - Redux : overkill pour 2 développeurs
@@ -55,6 +57,7 @@ apps/mobile/
 ```
 
 **Pourquoi** :
+
 - Chaque feature est isolée et testable
 - Facilite le travail à deux (ownership clair)
 - Prépare l'extension future (web, etc.)
@@ -63,11 +66,11 @@ apps/mobile/
 
 ### [2025-12-21] - Répartition initiale du travail
 
-| Dev | Responsabilités |
-|-----|-----------------|
-| Dev A | Auth, Character, Progression |
-| Dev B | Habits, Quests, Vérification photo |
-| Ensemble | Setup, DB, Design system |
+| Dev      | Responsabilités                    |
+| -------- | ---------------------------------- |
+| Dev A    | Auth, Character, Progression       |
+| Dev B    | Habits, Quests, Vérification photo |
+| Ensemble | Setup, DB, Design system           |
 
 ---
 
@@ -93,6 +96,7 @@ apps/mobile/
 ### [2025-12-21] - Schéma initial défini
 
 **Tables créées** (conceptuellement) :
+
 - `characters` : personnage de l'utilisateur
 - `domain_skills` : niveaux par domaine (études, sport, etc.)
 - `habits` : habitudes configurées
@@ -141,12 +145,14 @@ Implémentation dans `src/constants/colors.ts`
 **Participants** : Équipe + Claude
 
 **Ordre du jour** :
+
 1. Analyse de la documentation existante
 2. Proposition de stack technique
 3. Validation de l'architecture
 4. Création des fichiers de base
 
 **Actions** :
+
 - [x] Créer ARCHITECTURE.md
 - [x] Créer TRACE.md
 - [x] Créer SETUP.md (guide d'installation)
@@ -158,6 +164,7 @@ Implémentation dans `src/constants/colors.ts`
 ### [2025-12-21] - Projet Expo initialisé
 
 **Ce qui a été fait** :
+
 - Création du projet Expo avec TypeScript (`apps/mobile/`)
 - Installation des dépendances :
   - expo-router (navigation file-based)
@@ -176,12 +183,14 @@ Implémentation dans `src/constants/colors.ts`
 - Configuration VS Code (settings.json, extensions.json)
 
 **Fichiers clés** :
+
 - [app.json](../apps/mobile/app.json) : Config Expo
 - [package.json](../apps/mobile/package.json) : Dépendances et scripts
 - [src/types/](../apps/mobile/src/types/) : Types TypeScript
 - [src/constants/](../apps/mobile/src/constants/) : Constantes du jeu
 
 **Scripts disponibles** :
+
 ```bash
 npm start       # Démarre le serveur dev
 npm run lint    # Vérifie le code
@@ -193,6 +202,7 @@ npm run format  # Formate le code
 ### [2025-12-21] - Mise en place Git et collaboration
 
 **Ce qui a été fait** :
+
 - Initialisation du repository Git (`git init`, branche `main`)
 - Création du `.gitignore` global (racine du projet)
 - Configuration des environnements :
@@ -204,22 +214,27 @@ npm run format  # Formate le code
   - `README.md` : présentation du projet pour GitHub
 
 **Workflow Git choisi** : GitHub Flow
+
 - Branche `main` = production-ready
 - Branches feature/fix/chore pour le développement
 - Merge via Pull Request avec review
 
 **Conventions de commits** : Conventional Commits
+
 - `feat:` pour les nouvelles features
 - `fix:` pour les corrections
 - `docs:`, `refactor:`, `chore:` pour le reste
 
 **Scripts ajoutés** :
+
 ```bash
 npm run check      # typecheck + lint
 npm run precommit  # vérification avant commit
 ```
 
-**Prochaine étape** : Créer le repository GitHub et pusher le code
+### [2025-12-21] - Mise en place Git et collaboration
+
+- Modification /ajout des dependances "react-dom": "19.1.0" et "react-native-web": "^0.21.2" pour l'execution de l'app sur web et sur mobile
 
 ---
 

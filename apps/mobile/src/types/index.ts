@@ -21,7 +21,7 @@ export interface DomainInfo {
 // PERSONNAGE
 // =============================================================================
 
-export type Mood = 'happy' | 'neutral' | 'tired' | 'sad';
+export type Mood = 'happy' | 'neutral' | 'tired';
 
 export interface Character {
   id: string;

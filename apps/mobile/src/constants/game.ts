@@ -50,7 +50,7 @@ export const DOMAIN_INFO: Record<Domain, DomainInfo> = {
  * Formule: 100 × (niveau²) / 2
  */
 export const xpForLevel = (level: number): number => {
-  return Math.floor(100 * (level ** 2) / 2);
+  return Math.floor((100 * level ** 2) / 2);
 };
 
 /**
@@ -64,7 +64,9 @@ export const levelFromXp = (xp: number): number => {
 /**
  * Calcule l'XP dans le niveau actuel et l'XP requis pour le prochain
  */
-export const xpProgress = (totalXp: number): { current: number; required: number; level: number } => {
+export const xpProgress = (
+  totalXp: number
+): { current: number; required: number; level: number } => {
   const level = levelFromXp(totalXp);
   const xpAtCurrentLevel = xpForLevel(level);
   const xpAtNextLevel = xpForLevel(level + 1);
@@ -174,7 +176,6 @@ export const MOOD_EMOJIS = {
   happy: '😊',
   neutral: '😐',
   tired: '😴',
-  sad: '😢',
 } as const;
 
 // =============================================================================
