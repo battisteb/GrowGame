@@ -259,6 +259,40 @@ npm run precommit  # vérification avant commit
 
 ---
 
+### [2025-12-24] - [0004] Authentification avec Supabase
+
+**Ce qui a été fait** :
+- Création du service d'authentification (`auth.service.ts`)
+  - Fonctions: signUp, signIn, signOut, getSession, getCurrentUser
+  - Gestion du reset de mot de passe
+  - Support des auth state changes
+- Création du store Zustand pour l'état d'authentification (`authStore.ts`)
+  - État global: user, session, isLoading, isInitialized
+  - Actions: initialize, login, register, logout
+- Création des écrans d'authentification
+  - Login screen avec email/password
+  - Register screen avec name, email, password
+  - Validation des inputs et gestion des erreurs
+- Mise en place de la persistence de session
+  - Installation de @react-native-async-storage/async-storage
+  - Configuration du client Supabase avec AsyncStorage
+  - Auto-login au démarrage de l'app
+- Implémentation du routing basé sur l'authentification
+  - AuthProvider pour initialiser l'auth au démarrage
+  - Protection des routes (tabs) pour les utilisateurs connectés uniquement
+  - Redirection automatique login/home selon l'état auth
+- Ajout d'un bouton de déconnexion dans l'écran Home
+  - Affichage du nom de l'utilisateur connecté
+  - Confirmation avant déconnexion
+
+**Tests effectués** :
+✅ TypeScript compilation sans erreurs
+✅ Toutes les dépendances installées correctement
+
+**Prochaine étape** : [0005] Création du personnage au signup (auto-create character + domain_skills)
+
+---
+
 ## Notes Diverses
 
 > Informations utiles qui ne rentrent pas dans les autres catégories

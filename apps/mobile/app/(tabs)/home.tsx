@@ -2,9 +2,11 @@ import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState } from 'react';
 import { runSupabaseTests } from '../../src/services/test.service';
+import { useAuthStore } from '../../src/stores/authStore';
 
 export default function HomeScreen() {
   const [testing, setTesting] = useState(false);
+  const { user, logout } = useAuthStore();
 
   const handleTestConnection = async () => {
     setTesting(true);
@@ -22,11 +24,30 @@ export default function HomeScreen() {
     }
   };
 
+  const handleLogout = () => {
+    Alert.alert(
+      'Déconnexion',
+      'Voulez-vous vraiment vous déconnecter ?',
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Déconnexion',
+          style: 'destructive',
+          onPress: async () => {
+            await logout();
+          },
+        },
+      ]
+    );
+  };
+
+  const userName = user?.user_metadata?.name || user?.email?.split('@')[0] || 'Aventurier';
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
         <Text style={styles.title}>GrowGame</Text>
-        <Text style={styles.subtitle}>Bienvenue, Aventurier !</Text>
+        <Text style={styles.subtitle}>Bienvenue, {userName} !</Text>
         <View style={styles.statsContainer}>
           <Text style={styles.statsText}>Niveau: 1</Text>
           <Text style={styles.statsText}>XP: 0 / 50</Text>
@@ -41,6 +62,16 @@ export default function HomeScreen() {
         >
           <Text style={styles.testButtonText}>
             {testing ? '⏳ Test en cours...' : '🧪 Tester Supabase'}
+          </Text>
+        </TouchableOpacity>
+
+        {/* Bouton de déconnexion */}
+        <TouchableOpacity
+          style={styles.logoutButton}
+          onPress={handleLogout}
+        >
+          <Text style={styles.logoutButtonText}>
+            🚪 Se déconnecter
           </Text>
         </TouchableOpacity>
       </View>
@@ -94,6 +125,19 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   testButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  logoutButton: {
+    marginTop: 12,
+    backgroundColor: '#ef4444',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+  },
+  logoutButtonText: {
     color: '#ffffff',
     fontSize: 16,
     fontWeight: '600',
