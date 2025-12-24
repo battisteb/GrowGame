@@ -1,7 +1,27 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useState } from 'react';
+import { runSupabaseTests } from '../../src/services/test.service';
 
 export default function HomeScreen() {
+  const [testing, setTesting] = useState(false);
+
+  const handleTestConnection = async () => {
+    setTesting(true);
+    try {
+      const success = await runSupabaseTests();
+      if (success) {
+        Alert.alert('✅ Connexion réussie', 'Supabase est correctement configuré !');
+      } else {
+        Alert.alert('❌ Erreur', 'Vérifiez les logs de la console');
+      }
+    } catch (error) {
+      Alert.alert('❌ Erreur', String(error));
+    } finally {
+      setTesting(false);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
@@ -12,6 +32,17 @@ export default function HomeScreen() {
           <Text style={styles.statsText}>XP: 0 / 50</Text>
           <Text style={styles.statsText}>Streak: 0 jours</Text>
         </View>
+
+        {/* Bouton de test Supabase */}
+        <TouchableOpacity
+          style={styles.testButton}
+          onPress={handleTestConnection}
+          disabled={testing}
+        >
+          <Text style={styles.testButtonText}>
+            {testing ? '⏳ Test en cours...' : '🧪 Tester Supabase'}
+          </Text>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
@@ -54,5 +85,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#374151',
     marginBottom: 8,
+  },
+  testButton: {
+    marginTop: 24,
+    backgroundColor: '#6366f1',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+  },
+  testButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
   },
 });
