@@ -11,7 +11,6 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
@@ -20,6 +19,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../src/stores/authStore';
+import { showAlert, showErrorAlert } from '../src/utils/alert';
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -33,27 +33,27 @@ export default function RegisterScreen() {
   const handleRegister = async () => {
     // Validation
     if (!name.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) {
-      Alert.alert('Erreur', 'Veuillez remplir tous les champs');
+      showErrorAlert('Erreur', 'Veuillez remplir tous les champs');
       return;
     }
 
     if (name.trim().length < 2) {
-      Alert.alert('Erreur', 'Le nom doit contenir au moins 2 caractères');
+      showErrorAlert('Erreur', 'Le nom doit contenir au moins 2 caractères');
       return;
     }
 
     if (!email.includes('@')) {
-      Alert.alert('Erreur', 'Veuillez entrer un email valide');
+      showErrorAlert('Erreur', 'Veuillez entrer un email valide');
       return;
     }
 
     if (password.length < 6) {
-      Alert.alert('Erreur', 'Le mot de passe doit contenir au moins 6 caractères');
+      showErrorAlert('Erreur', 'Le mot de passe doit contenir au moins 6 caractères');
       return;
     }
 
     if (password !== confirmPassword) {
-      Alert.alert('Erreur', 'Les mots de passe ne correspondent pas');
+      showErrorAlert('Erreur', 'Les mots de passe ne correspondent pas');
       return;
     }
 
@@ -64,7 +64,7 @@ export default function RegisterScreen() {
     const success = await register(email.trim(), password, name.trim());
 
     if (success) {
-      Alert.alert(
+      showAlert(
         'Inscription réussie !',
         'Bienvenue dans GrowGame ! Votre aventure commence maintenant.',
         [
@@ -75,7 +75,7 @@ export default function RegisterScreen() {
         ]
       );
     } else {
-      Alert.alert('Erreur d\'inscription', error || 'Une erreur est survenue');
+      showErrorAlert('Erreur d\'inscription', error || 'Une erreur est survenue');
     }
   };
 

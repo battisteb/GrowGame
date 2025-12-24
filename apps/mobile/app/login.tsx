@@ -11,7 +11,6 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
@@ -19,6 +18,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../src/stores/authStore';
+import { showErrorAlert } from '../src/utils/alert';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -30,12 +30,12 @@ export default function LoginScreen() {
   const handleLogin = async () => {
     // Validation
     if (!email.trim() || !password.trim()) {
-      Alert.alert('Erreur', 'Veuillez remplir tous les champs');
+      showErrorAlert('Erreur', 'Veuillez remplir tous les champs');
       return;
     }
 
     if (!email.includes('@')) {
-      Alert.alert('Erreur', 'Veuillez entrer un email valide');
+      showErrorAlert('Erreur', 'Veuillez entrer un email valide');
       return;
     }
 
@@ -49,7 +49,7 @@ export default function LoginScreen() {
       // Navigation will be handled by auth state change
       router.replace('/(tabs)/home');
     } else {
-      Alert.alert('Erreur de connexion', error || 'Email ou mot de passe incorrect');
+      showErrorAlert('Erreur de connexion', error || 'Email ou mot de passe incorrect');
     }
   };
 

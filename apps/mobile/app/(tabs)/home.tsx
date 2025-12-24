@@ -1,8 +1,9 @@
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState } from 'react';
 import { runSupabaseTests } from '../../src/services/test.service';
 import { useAuthStore } from '../../src/stores/authStore';
+import { showSuccessAlert, showErrorAlert, showConfirmAlert } from '../../src/utils/alert';
 
 export default function HomeScreen() {
   const [testing, setTesting] = useState(false);
@@ -13,31 +14,24 @@ export default function HomeScreen() {
     try {
       const success = await runSupabaseTests();
       if (success) {
-        Alert.alert('✅ Connexion réussie', 'Supabase est correctement configuré !');
+        showSuccessAlert('✅ Connexion réussie', 'Supabase est correctement configuré !');
       } else {
-        Alert.alert('❌ Erreur', 'Vérifiez les logs de la console');
+        showErrorAlert('❌ Erreur', 'Vérifiez les logs de la console');
       }
     } catch (error) {
-      Alert.alert('❌ Erreur', String(error));
+      showErrorAlert('❌ Erreur', String(error));
     } finally {
       setTesting(false);
     }
   };
 
   const handleLogout = () => {
-    Alert.alert(
+    showConfirmAlert(
       'Déconnexion',
       'Voulez-vous vraiment vous déconnecter ?',
-      [
-        { text: 'Annuler', style: 'cancel' },
-        {
-          text: 'Déconnexion',
-          style: 'destructive',
-          onPress: async () => {
-            await logout();
-          },
-        },
-      ]
+      async () => {
+        await logout();
+      }
     );
   };
 
