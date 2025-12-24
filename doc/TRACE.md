@@ -238,6 +238,27 @@ npm run precommit  # vérification avant commit
 
 ---
 
+### [2025-12-21] - Roadmap et plan d'avancement
+
+**Ce qui a été fait** :
+- Création de `TODO.md` : roadmap complète du projet
+- Organisation en 6 phases (Phase 0 à 5)
+- Découpage en features numérotées [0001] à [0020]
+- Section "Tâche en cours" détaillée
+- Priorisation et dépendances entre tasks
+
+**Plan d'avancement** :
+- **Phase 0** (Setup) : ✅ Terminée
+- **Phase 1** (Backend & Auth) : 🔄 Prochaine (tâche [0001] en cours)
+- **Phase 2** (Core Loop MVP) : Validation habitudes + XP
+- **Phase 3** (Gamification) : Streak, decay, humeur
+- **Phase 4** (Shop) : Cosmétiques et récompenses
+- **Phase 5** (Polish) : Vérification photo, notifications, animations
+
+**Prochaine étape** : [0001] Setup Supabase (création projet, schema DB, connexion)
+
+---
+
 ## Notes Diverses
 
 > Informations utiles qui ne rentrent pas dans les autres catégories
