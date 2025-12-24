@@ -80,7 +80,7 @@ export default function RegisterScreen() {
   };
 
   const handleLogin = () => {
-    router.back();
+    router.replace('/login');
   };
 
   return (

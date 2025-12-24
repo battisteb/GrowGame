@@ -1,12 +1,14 @@
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState } from 'react';
+import { useRouter } from 'expo-router';
 import { runSupabaseTests } from '../../src/services/test.service';
 import { useAuthStore } from '../../src/stores/authStore';
 import { showSuccessAlert, showErrorAlert, showConfirmAlert } from '../../src/utils/alert';
 
 export default function HomeScreen() {
   const [testing, setTesting] = useState(false);
+  const router = useRouter();
   const { user, logout } = useAuthStore();
 
   const handleTestConnection = async () => {
@@ -31,6 +33,7 @@ export default function HomeScreen() {
       'Voulez-vous vraiment vous déconnecter ?',
       async () => {
         await logout();
+        router.replace('/login');
       }
     );
   };
