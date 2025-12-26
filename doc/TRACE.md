@@ -293,6 +293,35 @@ npm run precommit  # vérification avant commit
 
 ---
 
+### [2025-12-26] - [0005] Création automatique du personnage au signup
+
+**Ce qui a été fait** :
+- Création du service de gestion des personnages (`character.service.ts`)
+  - `createCharacter()` : crée un personnage + 5 domain_skills en une transaction
+  - `getCharacterByUserId()` : récupère le personnage d'un utilisateur
+  - `getDomainSkills()` : récupère tous les domain_skills d'un personnage
+  - `userHasCharacter()` : vérifie si un utilisateur a déjà un personnage
+- Modification du flux d'inscription (`authStore.ts`)
+  - La fonction `register()` crée maintenant automatiquement :
+    - 1 personnage avec les valeurs par défaut (niveau 1, 0 XP, 0 coins, mood neutral)
+    - 5 domain_skills (études, sport, méditation, lecture, étirements) niveau 1, 0 XP
+  - Gestion des erreurs partielles (compte créé mais personnage échoué)
+
+**Détails techniques** :
+- Constraint UNIQUE sur `characters.user_id` garantit 1 seul personnage par utilisateur
+- Constraint UNIQUE sur `domain_skills(character_id, domain)` garantit 1 skill par domaine
+- Les 5 domaines obligatoires sont : études, sport, méditation, lecture, étirements
+- Toutes les valeurs par défaut respectent le schéma DB (levels >= 1, xp >= 0, etc.)
+
+**Tests à effectuer** :
+- [ ] Inscription d'un nouvel utilisateur
+- [ ] Vérification en DB que le character est créé
+- [ ] Vérification en DB que les 5 domain_skills sont créés
+
+**Prochaine étape** : [0006] Affichage du personnage dans l'app
+
+---
+
 ## Notes Diverses
 
 > Informations utiles qui ne rentrent pas dans les autres catégories

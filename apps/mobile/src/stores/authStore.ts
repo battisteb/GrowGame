@@ -18,6 +18,7 @@ import {
   getCurrentUser,
   onAuthStateChange,
 } from '../services/auth.service';
+import { createCharacter } from '../services/character.service';
 
 interface AuthState {
   // State
@@ -131,29 +132,51 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   /**
-   * Register new user
+   * Register new user and create character
    */
   register: async (email: string, password: string, name: string) => {
     try {
       set({ isLoading: true, error: null });
 
+      // Step 1: Create user account
       const result = await signUp(email, password, name);
 
-      if (result.success && result.user) {
-        set({
-          user: result.user,
-          session: result.session || null,
-          isLoading: false,
-          error: null,
-        });
-        return true;
-      } else {
+      if (!result.success || !result.user) {
         set({
           isLoading: false,
           error: result.error || 'Registration failed',
         });
         return false;
       }
+
+      console.log('✅ User account created, now creating character...');
+
+      // Step 2: Create character and domain skills
+      const characterResult = await createCharacter(result.user.id, name);
+
+      if (!characterResult.success) {
+        console.error('⚠️ Character creation failed:', characterResult.error);
+        // User account was created but character failed
+        // We still set the user state but show a warning
+        set({
+          user: result.user,
+          session: result.session || null,
+          isLoading: false,
+          error: `Account created but character setup incomplete: ${characterResult.error}`,
+        });
+        return false;
+      }
+
+      console.log('✅ Character and domain skills created successfully');
+
+      // Success: both user and character created
+      set({
+        user: result.user,
+        session: result.session || null,
+        isLoading: false,
+        error: null,
+      });
+      return true;
     } catch (error) {
       console.error('❌ Register error:', error);
       set({
