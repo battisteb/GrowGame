@@ -28,8 +28,8 @@ GrowGame transforme vos habitudes quotidiennes en aventure. Votre personnage év
 ### Installation
 
 ```bash
-# Cloner le repo
-git clone https://github.com/VOTRE_ORG/GrowGame.git
+# Cloner le repo (token SSH)
+git clone git@github.com:battisteb/GrowGame.git
 cd GrowGame
 
 # Installer les dépendances
