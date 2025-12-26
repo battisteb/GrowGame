@@ -5,6 +5,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SUPABASE_CONFIG, validateEnv } from '../config/env';
 
 // Valider les variables d'environnement au démarrage
@@ -17,7 +18,7 @@ if (!envValidation.valid) {
 export const supabase = createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey, {
   auth: {
     // Persister la session dans AsyncStorage
-    storage: undefined, // TODO: configurer AsyncStorage
+    storage: AsyncStorage,
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: false,
