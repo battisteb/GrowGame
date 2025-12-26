@@ -61,23 +61,25 @@ Phase 5 : Polish & Amélioration           ⏳ À VENIR
 
 **Objectif** : Mettre en place Supabase et l'authentification
 
-### [0001] - Setup Supabase
+### [0003] - Setup Supabase ✅
 
 **Responsable** : Ensemble (puis Dev A ownership)
 
+**Status** : TERMINÉ (commit: 286dc6d)
+
 **Tâches** :
-- [ ] Créer le projet Supabase (dashboard)
-- [ ] Configurer les variables `.env` (URLs, keys)
-- [ ] Créer le schéma de base de données (migrations SQL)
-  - [ ] Table `characters`
-  - [ ] Table `domain_skills`
-  - [ ] Table `habits`
-  - [ ] Table `habit_logs`
-  - [ ] Table `shop_items`
-  - [ ] Table `user_items`
-  - [ ] Table `equipments`
-- [ ] Configurer Row Level Security (RLS)
-- [ ] Tester les connexions depuis l'app
+- [x] Créer le projet Supabase (dashboard)
+- [x] Configurer les variables `.env` (URLs, keys)
+- [x] Créer le schéma de base de données (migrations SQL)
+  - [x] Table `characters`
+  - [x] Table `domain_skills`
+  - [x] Table `habits`
+  - [x] Table `habit_logs`
+  - [x] Table `shop_items`
+  - [x] Table `user_items`
+  - [x] Table `equipments`
+- [x] Configurer Row Level Security (RLS)
+- [x] Tester les connexions depuis l'app
 
 **Fichiers clés** :
 - `supabase/migrations/001_initial_schema.sql`
@@ -90,7 +92,7 @@ Phase 5 : Polish & Amélioration           ⏳ À VENIR
 
 ---
 
-### [0002] - Authentification avec Supabase
+### [0004] - Authentification avec Supabase
 
 **Responsable** : Dev A
 
@@ -123,7 +125,7 @@ Phase 5 : Polish & Amélioration           ⏳ À VENIR
 
 ---
 
-### [0003] - Création du personnage au signup
+### [0005] - Création du personnage au signup
 
 **Responsable** : Dev A
 
@@ -527,61 +529,39 @@ Phase 5 : Polish & Amélioration           ⏳ À VENIR
 
 ## 🎯 Tâche en Cours
 
-### [0001] - Setup Supabase
+### [0004] - Authentification avec Supabase
 
 **Sprint actuel** : Phase 1 - Backend & Auth
 
-**Responsable** : Ensemble (puis Dev A ownership)
+**Responsable** : Dev A
 
-**Date de début** : 2025-12-21
+**Date de début** : 2025-12-21 (à venir)
 
 **Objectif** :
-Créer le projet Supabase, définir le schéma de base de données et connecter l'application.
+Implémenter l'authentification complète (inscription, connexion, déconnexion) avec Supabase.
 
-**Tâches détaillées** :
-
-1. **Création du projet Supabase**
-   - [ ] Aller sur [supabase.com](https://supabase.com)
-   - [ ] Créer un nouveau projet "GrowGame"
-   - [ ] Choisir la région (proche de vous)
-   - [ ] Récupérer l'URL et l'anon key
-
-2. **Configuration de l'application**
-   - [ ] Copier `.env.example` vers `.env`
-   - [ ] Remplir `EXPO_PUBLIC_SUPABASE_URL`
-   - [ ] Remplir `EXPO_PUBLIC_SUPABASE_ANON_KEY`
-   - [ ] Tester la connexion (`src/config/env.ts`)
-
-3. **Création du schéma SQL**
-   - [ ] Créer `supabase/migrations/001_initial_schema.sql`
-   - [ ] Définir les tables (voir ARCHITECTURE.md)
-   - [ ] Appliquer les migrations via le dashboard Supabase
-
-4. **Configuration Row Level Security**
-   - [ ] Activer RLS sur toutes les tables
-   - [ ] Définir les policies (user ne peut voir que ses données)
-
-5. **Test de connexion**
-   - [ ] Créer un service de test
-   - [ ] Vérifier la lecture/écriture
+**Tâches à faire** :
+- [ ] Créer le service d'authentification (`src/services/auth.service.ts`)
+- [ ] Créer le store Zustand pour l'auth (`src/stores/authStore.ts`)
+- [ ] Implémenter l'écran Login fonctionnel
+- [ ] Implémenter l'écran Register fonctionnel
+- [ ] Gérer la persistance de session
+- [ ] Implémenter la logique de redirection (auth vs tabs)
 
 **Fichiers à créer/modifier** :
-- `supabase/migrations/001_initial_schema.sql`
-- `apps/mobile/.env`
-- `src/services/supabase.ts` (client Supabase)
-
-**Bloquants potentiels** :
-- Compte Supabase (gratuit OK)
-- Compréhension du SQL
+- `src/services/auth.service.ts`
+- `src/stores/authStore.ts`
+- `app/(auth)/login.tsx`
+- `app/(auth)/register.tsx`
+- `app/index.tsx`
 
 **Critères de "done"** :
-- ✅ Projet Supabase créé
-- ✅ `.env` configuré
-- ✅ Schema DB déployé
-- ✅ RLS configuré
-- ✅ App peut lire/écrire en DB
+- Un utilisateur peut créer un compte
+- Un utilisateur peut se connecter
+- La session persiste au redémarrage
+- Redirection automatique selon l'état de connexion
 
-**Prochaine tâche** : [0002] Authentification avec Supabase
+**Prochaine tâche** : [0005] Création du personnage au signup
 
 ---
 
