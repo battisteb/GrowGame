@@ -1,52 +1,174 @@
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+/**
+ * Habits Screen
+ *
+ * Manage daily habits (CRUD operations)
+ * Completion/validation will be added in [0008]
+ */
+
+import { useEffect, useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  ActivityIndicator,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-// Placeholder data - will come from store/API later
-const MOCK_HABITS = [
-  { id: '1', name: '30 min de lecture', domain: 'lecture', difficulty: 2, completed: false },
-  { id: '2', name: 'Méditation 10 min', domain: 'meditation', difficulty: 1, completed: true },
-  { id: '3', name: 'Exercice physique', domain: 'sport', difficulty: 3, completed: false },
-  { id: '4', name: 'Étirements', domain: 'etirements', difficulty: 1, completed: false },
-];
-
-const DOMAIN_EMOJIS: Record<string, string> = {
-  lecture: '📚',
-  meditation: '🧘',
-  sport: '💪',
-  etirements: '🤸',
-  etudes: '📖',
-};
+import { useCharacterStore } from '../../src/stores/characterStore';
+import { useHabitsStore } from '../../src/stores/habitsStore';
+import { HabitCard } from '../../src/components/HabitCard';
+import { HabitForm } from '../../src/components/HabitForm';
+import { showConfirmAlert } from '../../src/utils/alert';
+import type { Domain, Difficulty, Habit } from '../../src/types';
 
 export default function HabitsScreen() {
+  const { character } = useCharacterStore();
+  const { habits, isLoading, loadHabits, addHabit, editHabit, removeHabit } =
+    useHabitsStore();
+
+  const [isFormVisible, setIsFormVisible] = useState(false);
+  const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
+
+  // Load habits when character is available
+  useEffect(() => {
+    if (character?.id) {
+      loadHabits(character.id);
+    }
+  }, [character?.id, loadHabits]);
+
+  const handleAddHabit = async (data: {
+    domain: Domain;
+    name: string;
+    difficulty: Difficulty;
+  }) => {
+    if (!character?.id) return;
+
+    const success = await addHabit({
+      character_id: character.id,
+      ...data,
+    });
+
+    if (success) {
+      console.log('✅ Habit added successfully');
+    }
+  };
+
+  const handleEditHabit = async (data: {
+    domain: Domain;
+    name: string;
+    difficulty: Difficulty;
+  }) => {
+    if (!editingHabit) return;
+
+    const success = await editHabit(editingHabit.id, data);
+
+    if (success) {
+      console.log('✅ Habit updated successfully');
+      setEditingHabit(null);
+    }
+  };
+
+  const handleDeleteHabit = (habitId: string, habitName: string) => {
+    showConfirmAlert(
+      'Supprimer l\'habitude',
+      `Voulez-vous vraiment supprimer "${habitName}" ?`,
+      async () => {
+        const success = await removeHabit(habitId);
+        if (success) {
+          console.log('✅ Habit deleted successfully');
+        }
+      }
+    );
+  };
+
+  const openEditForm = (habit: Habit) => {
+    setEditingHabit(habit);
+    setIsFormVisible(true);
+  };
+
+  const closeForm = () => {
+    setIsFormVisible(false);
+    setEditingHabit(null);
+  };
+
+  if (!character) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>Aucun personnage trouvé</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (isLoading && habits.length === 0) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#6366f1" />
+          <Text style={styles.loadingText}>Chargement des habitudes...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
+      {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Habitudes du jour</Text>
-        <Text style={styles.subtitle}>1/4 complétées</Text>
+        <View>
+          <Text style={styles.title}>Mes Habitudes</Text>
+          <Text style={styles.subtitle}>
+            {habits.length} habitude{habits.length !== 1 ? 's' : ''}
+          </Text>
+        </View>
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => setIsFormVisible(true)}
+        >
+          <Text style={styles.addButtonText}>+ Ajouter</Text>
+        </TouchableOpacity>
       </View>
 
-      <FlatList
-        data={MOCK_HABITS}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
-        renderItem={({ item }) => (
+      {/* Habits List */}
+      {habits.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyEmoji}>📝</Text>
+          <Text style={styles.emptyTitle}>Aucune habitude</Text>
+          <Text style={styles.emptySubtitle}>
+            Créez votre première habitude pour commencer à progresser !
+          </Text>
           <TouchableOpacity
-            style={[styles.habitCard, item.completed && styles.habitCardCompleted]}
+            style={styles.emptyButton}
+            onPress={() => setIsFormVisible(true)}
           >
-            <Text style={styles.habitEmoji}>{DOMAIN_EMOJIS[item.domain] || '✨'}</Text>
-            <View style={styles.habitInfo}>
-              <Text style={[styles.habitName, item.completed && styles.habitNameCompleted]}>
-                {item.name}
-              </Text>
-              <Text style={styles.habitDifficulty}>
-                {'⭐'.repeat(item.difficulty)}
-              </Text>
-            </View>
-            <View style={[styles.checkBox, item.completed && styles.checkBoxCompleted]}>
-              {item.completed && <Text style={styles.checkMark}>✓</Text>}
-            </View>
+            <Text style={styles.emptyButtonText}>Créer une habitude</Text>
           </TouchableOpacity>
-        )}
+        </View>
+      ) : (
+        <FlatList
+          data={habits}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.listContent}
+          renderItem={({ item }) => (
+            <HabitCard
+              habit={item}
+              onPress={() => openEditForm(item)}
+              onDelete={() => handleDeleteHabit(item.id, item.name)}
+            />
+          )}
+          refreshing={isLoading}
+          onRefresh={() => character?.id && loadHabits(character.id)}
+        />
+      )}
+
+      {/* Habit Form Modal */}
+      <HabitForm
+        visible={isFormVisible}
+        onClose={closeForm}
+        onSubmit={editingHabit ? handleEditHabit : handleAddHabit}
+        initialData={editingHabit}
       />
     </SafeAreaView>
   );
@@ -58,6 +180,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#f9fafb',
   },
   header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     padding: 20,
     paddingTop: 10,
   },
@@ -71,63 +196,67 @@ const styles = StyleSheet.create({
     color: '#6b7280',
     marginTop: 4,
   },
+  addButton: {
+    backgroundColor: '#6366f1',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  addButtonText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
   listContent: {
     padding: 20,
     paddingTop: 0,
   },
-  habitCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#ffffff',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  habitCardCompleted: {
-    backgroundColor: '#f0fdf4',
-    borderColor: '#86efac',
-    borderWidth: 1,
-  },
-  habitEmoji: {
-    fontSize: 24,
-    marginRight: 12,
-  },
-  habitInfo: {
+  loadingContainer: {
     flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 16,
   },
-  habitName: {
+  loadingText: {
     fontSize: 16,
-    fontWeight: '500',
-    color: '#1f2937',
-  },
-  habitNameCompleted: {
-    textDecorationLine: 'line-through',
     color: '#6b7280',
   },
-  habitDifficulty: {
-    fontSize: 12,
-    marginTop: 4,
-  },
-  checkBox: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    borderWidth: 2,
-    borderColor: '#d1d5db',
-    alignItems: 'center',
+  emptyContainer: {
+    flex: 1,
     justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40,
   },
-  checkBoxCompleted: {
-    backgroundColor: '#22c55e',
-    borderColor: '#22c55e',
+  emptyEmoji: {
+    fontSize: 64,
+    marginBottom: 16,
   },
-  checkMark: {
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#1f2937',
+    marginBottom: 8,
+  },
+  emptySubtitle: {
+    fontSize: 14,
+    color: '#6b7280',
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  emptyButton: {
+    backgroundColor: '#6366f1',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  emptyButtonText: {
     color: '#ffffff',
-    fontWeight: 'bold',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#ef4444',
+    textAlign: 'center',
   },
 });

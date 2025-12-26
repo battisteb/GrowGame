@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { useAuthStore } from '../stores/authStore';
 import { useCharacterStore } from '../stores/characterStore';
+import { useHabitsStore } from '../stores/habitsStore';
 
 interface AuthProviderProps {
   children: React.ReactNode;
@@ -17,6 +18,7 @@ interface AuthProviderProps {
 export function AuthProvider({ children }: AuthProviderProps) {
   const { initialize, isInitialized, user } = useAuthStore();
   const { loadCharacter, clearCharacter } = useCharacterStore();
+  const { clearHabits } = useHabitsStore();
   const [isReady, setIsReady] = useState(false);
 
   // Initialize auth on mount
@@ -53,11 +55,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
       console.log('👤 Loading character for user:', user.id);
       loadCharacter(user.id);
     } else {
-      // User logged out, clear character
-      console.log('🚪 Clearing character data');
+      // User logged out, clear all data
+      console.log('🚪 Clearing character and habits data');
       clearCharacter();
+      clearHabits();
     }
-  }, [user, isInitialized, loadCharacter, clearCharacter]);
+  }, [user, isInitialized, loadCharacter, clearCharacter, clearHabits]);
 
   // Show loading screen while initializing
   if (!isReady || !isInitialized) {
