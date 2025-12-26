@@ -14,7 +14,8 @@ interface XPProgressBarProps {
 
 export function XPProgressBar({ currentLevel, currentXP }: XPProgressBarProps) {
   const xpNeeded = xpForLevel(currentLevel + 1);
-  const xpForCurrentLevel = xpForLevel(currentLevel);
+  // Level 1 starts at 0 XP, not at xpForLevel(1)
+  const xpForCurrentLevel = currentLevel === 1 ? 0 : xpForLevel(currentLevel);
   const xpInThisLevel = currentXP - xpForCurrentLevel;
   const xpNeededForNextLevel = xpNeeded - xpForCurrentLevel;
   const progress = Math.min((xpInThisLevel / xpNeededForNextLevel) * 100, 100);

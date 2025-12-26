@@ -30,7 +30,8 @@ const DOMAIN_COLORS: Record<Domain, string> = {
 
 export function DomainSkillCard({ skill }: DomainSkillCardProps) {
   const xpNeeded = xpForLevel(skill.level + 1);
-  const xpForCurrentLevel = xpForLevel(skill.level);
+  // Level 1 starts at 0 XP, not at xpForLevel(1)
+  const xpForCurrentLevel = skill.level === 1 ? 0 : xpForLevel(skill.level);
   const xpInThisLevel = skill.xp - xpForCurrentLevel;
   const xpNeededForNextLevel = xpNeeded - xpForCurrentLevel;
   const progress = Math.min((xpInThisLevel / xpNeededForNextLevel) * 100, 100);
