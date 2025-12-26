@@ -25,26 +25,29 @@ export type Mood = 'happy' | 'neutral' | 'tired';
 
 export interface Character {
   id: string;
-  userId: string;
+  user_id: string;
   name: string;
-  globalLevel: number;
-  globalXp: number;
+  global_level: number;
+  global_xp: number;
   coins: number;
   gems: number;
   mood: Mood;
-  currentStreak: number;
-  longestStreak: number;
-  createdAt: string;
-  updatedAt: string;
+  current_streak: number;
+  longest_streak: number;
+  last_activity_date: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface DomainSkill {
   id: string;
-  characterId: string;
+  character_id: string;
   domain: Domain;
   level: number;
   xp: number;
-  lastActivityAt: string | null;
+  last_activity_at: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 // =============================================================================

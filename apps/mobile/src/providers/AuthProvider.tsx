@@ -8,15 +8,18 @@
 import { useEffect, useState } from 'react';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { useAuthStore } from '../stores/authStore';
+import { useCharacterStore } from '../stores/characterStore';
 
 interface AuthProviderProps {
   children: React.ReactNode;
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const { initialize, isInitialized } = useAuthStore();
+  const { initialize, isInitialized, user } = useAuthStore();
+  const { loadCharacter, clearCharacter } = useCharacterStore();
   const [isReady, setIsReady] = useState(false);
 
+  // Initialize auth on mount
   useEffect(() => {
     let isMounted = true;
 
@@ -40,6 +43,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
       isMounted = false;
     };
   }, [initialize]);
+
+  // Load character when user changes
+  useEffect(() => {
+    if (!isInitialized) return;
+
+    if (user) {
+      // User is logged in, load their character
+      console.log('👤 Loading character for user:', user.id);
+      loadCharacter(user.id);
+    } else {
+      // User logged out, clear character
+      console.log('🚪 Clearing character data');
+      clearCharacter();
+    }
+  }, [user, isInitialized, loadCharacter, clearCharacter]);
 
   // Show loading screen while initializing
   if (!isReady || !isInitialized) {

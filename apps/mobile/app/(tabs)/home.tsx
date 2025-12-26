@@ -1,31 +1,16 @@
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useState } from 'react';
 import { useRouter } from 'expo-router';
-import { runSupabaseTests } from '../../src/services/test.service';
 import { useAuthStore } from '../../src/stores/authStore';
-import { showSuccessAlert, showErrorAlert, showConfirmAlert } from '../../src/utils/alert';
+import { useCharacterStore } from '../../src/stores/characterStore';
+import { showConfirmAlert } from '../../src/utils/alert';
+import { XPProgressBar } from '../../src/components/XPProgressBar';
+import { DomainSkillCard } from '../../src/components/DomainSkillCard';
 
 export default function HomeScreen() {
-  const [testing, setTesting] = useState(false);
   const router = useRouter();
   const { user, logout } = useAuthStore();
-
-  const handleTestConnection = async () => {
-    setTesting(true);
-    try {
-      const success = await runSupabaseTests();
-      if (success) {
-        showSuccessAlert('✅ Connexion réussie', 'Supabase est correctement configuré !');
-      } else {
-        showErrorAlert('❌ Erreur', 'Vérifiez les logs de la console');
-      }
-    } catch (error) {
-      showErrorAlert('❌ Erreur', String(error));
-    } finally {
-      setTesting(false);
-    }
-  };
+  const { character, domainSkills, isLoading } = useCharacterStore();
 
   const handleLogout = () => {
     showConfirmAlert(
@@ -38,40 +23,89 @@ export default function HomeScreen() {
     );
   };
 
-  const userName = user?.user_metadata?.name || user?.email?.split('@')[0] || 'Aventurier';
+  const userName = character?.name || user?.user_metadata?.name || user?.email?.split('@')[0] || 'Aventurier';
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#6366f1" />
+          <Text style={styles.loadingText}>Chargement de votre personnage...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!character) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>Aucun personnage trouvé</Text>
+          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+            <Text style={styles.logoutButtonText}>Se déconnecter</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <Text style={styles.title}>GrowGame</Text>
-        <Text style={styles.subtitle}>Bienvenue, {userName} !</Text>
-        <View style={styles.statsContainer}>
-          <Text style={styles.statsText}>Niveau: 1</Text>
-          <Text style={styles.statsText}>XP: 0 / 50</Text>
-          <Text style={styles.statsText}>Streak: 0 jours</Text>
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.title}>GrowGame</Text>
+          <Text style={styles.subtitle}>Bienvenue, {userName} !</Text>
         </View>
 
-        {/* Bouton de test Supabase */}
-        <TouchableOpacity
-          style={styles.testButton}
-          onPress={handleTestConnection}
-          disabled={testing}
-        >
-          <Text style={styles.testButtonText}>
-            {testing ? '⏳ Test en cours...' : '🧪 Tester Supabase'}
-          </Text>
-        </TouchableOpacity>
+        {/* Character Stats */}
+        <View style={styles.statsCard}>
+          <View style={styles.statsRow}>
+            <View style={styles.statItem}>
+              <Text style={styles.statLabel}>Niveau</Text>
+              <Text style={styles.statValue}>{character.global_level}</Text>
+            </View>
+            <View style={styles.statItem}>
+              <Text style={styles.statLabel}>Coins</Text>
+              <Text style={styles.statValue}>💰 {character.coins}</Text>
+            </View>
+            <View style={styles.statItem}>
+              <Text style={styles.statLabel}>Gems</Text>
+              <Text style={styles.statValue}>💎 {character.gems}</Text>
+            </View>
+          </View>
+          <View style={styles.streakContainer}>
+            <Text style={styles.streakText}>
+              🔥 Streak: {character.current_streak} jour{character.current_streak !== 1 ? 's' : ''}
+            </Text>
+            <Text style={styles.recordText}>
+              Record: {character.longest_streak}
+            </Text>
+          </View>
+        </View>
 
-        {/* Bouton de déconnexion */}
-        <TouchableOpacity
-          style={styles.logoutButton}
-          onPress={handleLogout}
-        >
-          <Text style={styles.logoutButtonText}>
-            🚪 Se déconnecter
-          </Text>
+        {/* XP Progress */}
+        <View style={styles.xpCard}>
+          <Text style={styles.sectionTitle}>Progression Globale</Text>
+          <XPProgressBar
+            currentLevel={character.global_level}
+            currentXP={character.global_xp}
+          />
+        </View>
+
+        {/* Domain Skills */}
+        <View style={styles.skillsSection}>
+          <Text style={styles.sectionTitle}>Compétences par Domaine</Text>
+          {domainSkills.map((skill) => (
+            <DomainSkillCard key={skill.id} skill={skill} />
+          ))}
+        </View>
+
+        {/* Logout Button */}
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Text style={styles.logoutButtonText}>🚪 Se déconnecter</Text>
         </TouchableOpacity>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -81,63 +115,126 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f9fafb',
   },
-  content: {
+  scrollView: {
     flex: 1,
-    alignItems: 'center',
+  },
+  scrollContent: {
+    padding: 16,
+  },
+  loadingContainer: {
+    flex: 1,
     justifyContent: 'center',
+    alignItems: 'center',
+    gap: 16,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#6b7280',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     padding: 20,
+    gap: 16,
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#ef4444',
+    textAlign: 'center',
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 24,
   },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
     color: '#1f2937',
-    marginBottom: 8,
+    marginBottom: 4,
   },
   subtitle: {
     fontSize: 18,
     color: '#6b7280',
-    marginBottom: 40,
   },
-  statsContainer: {
+  statsCard: {
     backgroundColor: '#ffffff',
-    padding: 20,
+    padding: 16,
     borderRadius: 12,
-    width: '100%',
+    marginBottom: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
   },
-  statsText: {
-    fontSize: 16,
-    color: '#374151',
-    marginBottom: 8,
+  statsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 16,
   },
-  testButton: {
-    marginTop: 24,
-    backgroundColor: '#6366f1',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
+  statItem: {
+    alignItems: 'center',
   },
-  testButtonText: {
-    color: '#ffffff',
-    fontSize: 16,
+  statLabel: {
+    fontSize: 12,
+    color: '#9ca3af',
+    marginBottom: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  statValue: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1f2937',
+  },
+  streakContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
+  },
+  streakText: {
+    fontSize: 14,
     fontWeight: '600',
-    textAlign: 'center',
+    color: '#ef4444',
+  },
+  recordText: {
+    fontSize: 12,
+    color: '#9ca3af',
+  },
+  xpCard: {
+    backgroundColor: '#ffffff',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1f2937',
+    marginBottom: 12,
+  },
+  skillsSection: {
+    marginBottom: 24,
   },
   logoutButton: {
-    marginTop: 12,
     backgroundColor: '#ef4444',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
+    padding: 16,
     borderRadius: 8,
+    alignItems: 'center',
+    marginBottom: 16,
   },
   logoutButtonText: {
     color: '#ffffff',
     fontSize: 16,
     fontWeight: '600',
-    textAlign: 'center',
   },
 });
