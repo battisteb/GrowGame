@@ -58,22 +58,24 @@ export type Difficulty = 1 | 2 | 3;
 
 export interface Habit {
   id: string;
-  characterId: string;
+  character_id: string;
   domain: Domain;
   name: string;
   difficulty: Difficulty;
-  isActive: boolean;
-  createdAt: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface HabitLog {
   id: string;
-  habitId: string;
-  completedAt: string;
-  photoUrl: string | null;
+  habit_id: string;
+  completed_at: string;
+  photo_url: string | null;
   verified: boolean;
-  xpEarned: number;
-  coinsEarned: number;
+  xp_earned: number;
+  coins_earned: number;
+  created_at: string;
 }
 
 // =============================================================================
@@ -127,6 +129,6 @@ export interface User {
 // =============================================================================
 
 export interface TodayHabit extends Habit {
-  completedToday: boolean;
-  todayLog: HabitLog | null;
+  completed_today: boolean;
+  today_log: HabitLog | null;
 }
