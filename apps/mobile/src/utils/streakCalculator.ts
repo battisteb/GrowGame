@@ -48,8 +48,20 @@ export function calculateStreak(
     (today.getTime() - lastActivity.getTime()) / (1000 * 60 * 60 * 24)
   );
 
-  // Same day - no change to streak
+  // Same day - check if we need to start the streak
   if (daysDifference === 0) {
+    // If current streak is 0, this means we're starting a new streak today
+    // (happens when multiple habits are completed on the same day)
+    if (currentStreak === 0) {
+      return {
+        currentStreak: 1,
+        longestStreak: Math.max(1, longestStreak),
+        shouldAwardBonus: false,
+        bonusAmount: 0,
+      };
+    }
+
+    // Otherwise, no change to existing streak
     return {
       currentStreak,
       longestStreak,
