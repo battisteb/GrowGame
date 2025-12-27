@@ -291,25 +291,35 @@ Phase 5 : Polish & Amélioration           ⏳ À VENIR
 
 ---
 
-### [0010] - Système de decay (compétences)
+### [0010] - Système de decay (compétences) ✅
 
 **Responsable** : Dev A
 
+**Status** : TERMINÉ (commit: 8d08a30, PR #8)
+
 **Tâches** :
-- [ ] Créer une fonction `checkDecay()`
-  - [ ] Vérifier chaque `domain_skill`
-  - [ ] Si `last_activity_at` > 7 jours → appliquer decay
-  - [ ] Niveau minimum = `currentLevel / 2`
-- [ ] Appeler `checkDecay()` au lancement de l'app
-- [ ] Afficher un message si decay appliqué
+- [x] Créer `decayCalculator.ts` avec logique de decay
+  - [x] Fonction `calculateDecay()` pour calculer le decay d'un domaine
+  - [x] Fonction `calculateDecayForAllDomains()` pour batch processing
+  - [x] Règle : après 7 jours → level devient max(1, floor(level/2))
+- [x] Créer `applyDecayToAllDomains()` dans character.service
+- [x] Intégrer le decay check dans characterStore (au loadCharacter)
+- [x] Afficher alerte de decay dans home.tsx
+- [x] **Bug fix** : Corriger les barres de progression XP
 
 **Fichiers clés** :
-- `src/utils/decayCalculator.ts`
-- `src/services/character.service.ts`
+- `apps/mobile/src/utils/decayCalculator.ts`
+- `apps/mobile/src/services/character.service.ts`
+- `apps/mobile/src/stores/characterStore.ts`
+- `apps/mobile/app/(tabs)/home.tsx`
+- `apps/mobile/src/components/XPProgressBar.tsx`
+- `apps/mobile/src/components/DomainSkillCard.tsx`
 
 **Critères de "done"** :
-- Après 7 jours d'inactivité, le niveau du domaine baisse
-- Le niveau ne descend jamais en dessous de la moitié
+- ✅ Après 7 jours d'inactivité, le niveau du domaine baisse
+- ✅ Le niveau ne descend jamais en dessous de la moitié (ou 1)
+- ✅ L'utilisateur est notifié du decay
+- ✅ Les barres XP affichent la bonne progression
 
 ---
 
@@ -592,7 +602,8 @@ Implémenter un système de decay pour les compétences non pratiquées, encoura
 | 0007 | CRUD Habitudes | 2025-12-24 | Claude | 32120f0 | #5 |
 | 0008 | Complétion Habitudes | 2025-12-25 | Claude | 5323d8e | #6 |
 | 0009 | Système de streak | 2025-12-27 | Claude | 70a3335 | #7 |
+| 0010 | Système de decay + Fix XP | 2025-12-27 | Claude | 8d08a30 | #8 |
 
 ---
 
-**Prochaine révision** : Après [0010] (système de decay)
+**Prochaine révision** : Après [0011] (humeur du personnage)

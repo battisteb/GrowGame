@@ -439,6 +439,82 @@ Unable to resolve module react-native-reanimated
 
 ---
 
+### [2025-12-27] [0010] Système de Decay + Bug Fix XP
+
+**Commit**: `8d08a30` | **PR**: #8
+
+**Actions**:
+- Implémentation du decay des compétences après 7 jours d'inactivité
+- Correction du bug d'affichage des barres de progression XP
+- Notification de decay à l'utilisateur
+
+**Fichiers créés**:
+- `apps/mobile/src/utils/decayCalculator.ts`
+
+**Fichiers modifiés**:
+- `apps/mobile/src/services/character.service.ts` (`applyDecayToAllDomains`)
+- `apps/mobile/src/stores/characterStore.ts` (intégration decay check)
+- `apps/mobile/app/(tabs)/home.tsx` (alerte decay)
+- `apps/mobile/src/components/XPProgressBar.tsx` (bug fix)
+- `apps/mobile/src/components/DomainSkillCard.tsx` (bug fix)
+
+**Logique de Decay**:
+```typescript
+// Règles:
+- Si last_activity_at est null → pas de decay (jamais pratiqué)
+- Si last_activity_at < 7 jours → pas de decay
+- Si last_activity_at >= 7 jours → decay appliqué
+  - Nouveau niveau = max(1, floor(currentLevel / 2))
+  - XP recalculé = (newLevel - 1) * 100
+
+// Exemple:
+Niveau 4 (400 XP) → 8 jours sans activité → Niveau 2 (100 XP)
+Niveau 3 (200 XP) → 8 jours sans activité → Niveau 1 (0 XP)
+```
+
+**Flow de Decay**:
+```
+1. Au chargement du character (characterStore.loadCharacter)
+2. Appel de applyDecayToAllDomains(characterId)
+3. Pour chaque domain_skill:
+   - Calculer daysInactive depuis last_activity_at
+   - Si >= 7 jours → appliquer decay
+4. Si decay appliqué:
+   - Recharger les skills
+   - Afficher message de notification
+5. Utilisateur voit l'alerte avec détails des compétences déclinées
+```
+
+**Problèmes Rencontrés et Solutions**:
+
+#### Bug Fix: Barres de Progression XP Incorrectes
+**Problème**: Les barres de progression affichaient des valeurs incorrectes. Par exemple, avec 150 XP au niveau 1, l'affichage montrait "150/50 XP" au lieu de "100/150 XP".
+
+**Cause**: Les composants utilisaient `xpForLevel(currentLevel)` comme cible, alors qu'il fallait utiliser `xpForLevel(currentLevel + 1)`.
+
+**Solution** (commit `8d08a30`):
+```typescript
+// Avant (incorrect):
+const xpNeeded = xpForLevel(skill.level); // 50 pour level 1
+const xpForCurrentLevel = skill.level > 1 ? xpForLevel(skill.level - 1) : 0;
+
+// Après (correct):
+const xpAtCurrentLevel = xpForLevel(skill.level); // XP au début du niveau
+const xpAtNextLevel = xpForLevel(skill.level + 1); // XP pour le niveau suivant
+const xpInThisLevel = Math.max(0, skill.xp - xpAtCurrentLevel);
+const xpNeededForNextLevel = xpAtNextLevel - xpAtCurrentLevel;
+```
+
+**Formule XP rappel**:
+```
+xpForLevel(n) = (100 * n²) / 2
+- Niveau 1: 0-199 XP (nécessite 200 XP pour passer niveau 2)
+- Niveau 2: 200-449 XP (nécessite 450 XP pour passer niveau 3)
+- Niveau 3: 450-799 XP (nécessite 800 XP pour passer niveau 4)
+```
+
+---
+
 ## Architecture Évolutive
 
 ### Services
@@ -458,16 +534,11 @@ Un store par domaine d'état:
 Logique métier pure (sans dépendances):
 - `xpCalculator.ts` - Formules XP → Level
 - `streakCalculator.ts` - Logique de streak
-- (à venir) `decayCalculator.ts` - Logique de decay
+- `decayCalculator.ts` - Logique de decay
 
 ---
 
 ## Prochaines Étapes
-
-### [0010] Système de Decay
-- Decay des compétences après 7 jours d'inactivité
-- Niveau minimum = `currentLevel / 2`
-- Notification à l'utilisateur
 
 ### [0011] Humeur du Personnage
 - Calcul de l'humeur basé sur l'activité
