@@ -1,8 +1,7 @@
 /**
  * Habits Screen
  *
- * Manage daily habits (CRUD operations)
- * Completion/validation will be added in [0008]
+ * Manage daily habits with completion tracking
  */
 
 import { useEffect, useState } from 'react';
@@ -23,19 +22,29 @@ import { showConfirmAlert } from '../../src/utils/alert';
 import type { Domain, Difficulty, Habit } from '../../src/types';
 
 export default function HabitsScreen() {
-  const { character } = useCharacterStore();
-  const { habits, isLoading, loadHabits, addHabit, editHabit, removeHabit } =
-    useHabitsStore();
+  const { character, refreshCharacter } = useCharacterStore();
+  const {
+    habits,
+    todayLogs,
+    isLoading,
+    loadHabits,
+    loadTodayLogs,
+    addHabit,
+    editHabit,
+    removeHabit,
+    toggleHabitCompletion,
+  } = useHabitsStore();
 
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
 
-  // Load habits when character is available
+  // Load habits and today's logs when character is available
   useEffect(() => {
     if (character?.id) {
       loadHabits(character.id);
+      loadTodayLogs(character.id);
     }
-  }, [character?.id, loadHabits]);
+  }, [character?.id, loadHabits, loadTodayLogs]);
 
   const handleAddHabit = async (data: {
     domain: Domain;
@@ -82,6 +91,17 @@ export default function HabitsScreen() {
     );
   };
 
+  const handleToggleCompletion = async (habit: Habit) => {
+    if (!character?.id) return;
+
+    const success = await toggleHabitCompletion(habit, character.id);
+
+    if (success) {
+      // Refresh character to show updated XP and coins
+      await refreshCharacter();
+    }
+  };
+
   const openEditForm = (habit: Habit) => {
     setEditingHabit(habit);
     setIsFormVisible(true);
@@ -90,6 +110,16 @@ export default function HabitsScreen() {
   const closeForm = () => {
     setIsFormVisible(false);
     setEditingHabit(null);
+  };
+
+  const handleRefresh = async () => {
+    if (character?.id) {
+      await Promise.all([
+        loadHabits(character.id),
+        loadTodayLogs(character.id),
+        refreshCharacter(),
+      ]);
+    }
   };
 
   if (!character) {
@@ -113,14 +143,18 @@ export default function HabitsScreen() {
     );
   }
 
+  // Calculate completion stats
+  const completedCount = Array.from(todayLogs.values()).length;
+  const totalCount = habits.length;
+
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
       {/* Header */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.title}>Mes Habitudes</Text>
+          <Text style={styles.title}>Habitudes du jour</Text>
           <Text style={styles.subtitle}>
-            {habits.length} habitude{habits.length !== 1 ? 's' : ''}
+            {completedCount} / {totalCount} complétée{totalCount > 1 ? 's' : ''}
           </Text>
         </View>
         <TouchableOpacity
@@ -151,15 +185,20 @@ export default function HabitsScreen() {
           data={habits}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContent}
-          renderItem={({ item }) => (
-            <HabitCard
-              habit={item}
-              onPress={() => openEditForm(item)}
-              onDelete={() => handleDeleteHabit(item.id, item.name)}
-            />
-          )}
+          renderItem={({ item }) => {
+            const isCompleted = todayLogs.has(item.id);
+            return (
+              <HabitCompletionCard
+                habit={item}
+                isCompleted={isCompleted}
+                onToggle={() => handleToggleCompletion(item)}
+                onEdit={() => openEditForm(item)}
+                onDelete={() => handleDeleteHabit(item.id, item.name)}
+              />
+            );
+          }}
           refreshing={isLoading}
-          onRefresh={() => character?.id && loadHabits(character.id)}
+          onRefresh={handleRefresh}
         />
       )}
 
@@ -173,6 +212,106 @@ export default function HabitsScreen() {
     </SafeAreaView>
   );
 }
+
+// =============================================================================
+// HABIT COMPLETION CARD
+// =============================================================================
+
+interface HabitCompletionCardProps {
+  habit: Habit;
+  isCompleted: boolean;
+  onToggle: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+}
+
+function HabitCompletionCard({
+  habit,
+  isCompleted,
+  onToggle,
+  onEdit,
+  onDelete,
+}: HabitCompletionCardProps) {
+  const { DOMAIN_INFO } = require('../../src/constants/game');
+  const domainInfo = DOMAIN_INFO[habit.domain];
+
+  const DIFFICULTY_STARS: Record<number, string> = {
+    1: '⭐',
+    2: '⭐⭐',
+    3: '⭐⭐⭐',
+  };
+
+  return (
+    <View
+      style={[styles.habitCard, isCompleted && styles.habitCardCompleted]}
+    >
+      {/* Left side: Domain badge and info */}
+      <View style={styles.habitLeft}>
+        <View
+          style={[
+            styles.domainBadge,
+            { backgroundColor: domainInfo.color },
+            isCompleted && styles.domainBadgeCompleted,
+          ]}
+        >
+          <Text style={styles.domainEmoji}>{domainInfo.emoji}</Text>
+        </View>
+        <View style={styles.habitInfo}>
+          <Text
+            style={[
+              styles.habitName,
+              isCompleted && styles.habitNameCompleted,
+            ]}
+          >
+            {habit.name}
+          </Text>
+          <View style={styles.habitMeta}>
+            <Text style={styles.domainName}>{domainInfo.name}</Text>
+            <Text style={styles.difficulty}>
+              {DIFFICULTY_STARS[habit.difficulty]}
+            </Text>
+          </View>
+        </View>
+      </View>
+
+      {/* Right side: Actions */}
+      <View style={styles.habitActions}>
+        {/* Edit button */}
+        <TouchableOpacity
+          style={styles.editButton}
+          onPress={onEdit}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Text style={styles.editIcon}>✏️</Text>
+        </TouchableOpacity>
+
+        {/* Delete button */}
+        <TouchableOpacity
+          style={styles.deleteButton}
+          onPress={onDelete}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Text style={styles.deleteIcon}>🗑️</Text>
+        </TouchableOpacity>
+
+        {/* Completion checkbox */}
+        <TouchableOpacity
+          style={[
+            styles.checkbox,
+            isCompleted && styles.checkboxCompleted,
+          ]}
+          onPress={onToggle}
+        >
+          {isCompleted && <Text style={styles.checkMark}>✓</Text>}
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}
+
+// =============================================================================
+// STYLES
+// =============================================================================
 
 const styles = StyleSheet.create({
   container: {
@@ -258,5 +397,106 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#ef4444',
     textAlign: 'center',
+  },
+
+  // Habit card styles
+  habitCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  habitCardCompleted: {
+    backgroundColor: '#f0fdf4',
+    borderWidth: 1,
+    borderColor: '#86efac',
+  },
+  habitLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  domainBadge: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  domainBadgeCompleted: {
+    opacity: 0.7,
+  },
+  domainEmoji: {
+    fontSize: 24,
+  },
+  habitInfo: {
+    flex: 1,
+  },
+  habitName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1f2937',
+    marginBottom: 4,
+  },
+  habitNameCompleted: {
+    textDecorationLine: 'line-through',
+    color: '#6b7280',
+  },
+  habitMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  domainName: {
+    fontSize: 13,
+    color: '#6b7280',
+  },
+  difficulty: {
+    fontSize: 12,
+  },
+  habitActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  editButton: {
+    padding: 4,
+  },
+  editIcon: {
+    fontSize: 18,
+  },
+  deleteButton: {
+    padding: 4,
+  },
+  deleteIcon: {
+    fontSize: 18,
+  },
+  checkbox: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#d1d5db',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 4,
+  },
+  checkboxCompleted: {
+    backgroundColor: '#22c55e',
+    borderColor: '#22c55e',
+  },
+  checkMark: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
 });
