@@ -10,6 +10,11 @@
 import { supabase } from './supabase';
 import type { Character, DomainSkill, Domain } from '../types';
 import { calculateStreak, getStreakMilestoneMessage } from '../utils/streakCalculator';
+import {
+  calculateDecayForAllDomains,
+  getDecaySummaryMessage,
+  type DecayResult,
+} from '../utils/decayCalculator';
 
 /**
  * The 5 core domains for skill tracking
@@ -277,5 +282,112 @@ export const updateStreak = async (
   } catch (error) {
     console.error('❌ Update streak exception:', error);
     return { success: false, error: String(error) };
+  }
+};
+
+/**
+ * Apply skill decay to all domains based on inactivity
+ * Should be called on app launch to check for decayed skills
+ *
+ * Decay rules:
+ * - After 7 days of inactivity on a domain → level drops to max(1, currentLevel / 2)
+ * - Never goes below level 1
+ * - XP is recalculated to match the new level
+ *
+ * @param characterId - The character ID to check
+ * @returns Summary of decay applied, with message if any decay occurred
+ */
+export const applyDecayToAllDomains = async (
+  characterId: string
+): Promise<{
+  success: boolean;
+  decayApplied: boolean;
+  message?: string;
+  decayedDomains?: string[];
+  error?: string;
+}> => {
+  try {
+    console.log('🔍 Checking skill decay for character:', characterId);
+
+    // Get all domain skills for the character
+    const { data: domainSkills, error: fetchError } = await supabase
+      .from('domain_skills')
+      .select('*')
+      .eq('character_id', characterId);
+
+    if (fetchError || !domainSkills) {
+      console.error('❌ Error fetching domain skills:', fetchError);
+      return {
+        success: false,
+        decayApplied: false,
+        error: fetchError?.message || 'Failed to fetch domain skills',
+      };
+    }
+
+    // Calculate decay for all domains
+    const decayResults = calculateDecayForAllDomains(domainSkills);
+
+    // Find domains that need decay applied
+    const domainsToDecay = domainSkills.filter((skill) => {
+      const result = decayResults.get(skill.domain);
+      return result && result.shouldDecay;
+    });
+
+    if (domainsToDecay.length === 0) {
+      console.log('✅ No skill decay needed');
+      return {
+        success: true,
+        decayApplied: false,
+      };
+    }
+
+    // Apply decay to each affected domain
+    console.log(`📉 Applying decay to ${domainsToDecay.length} domain(s)`);
+
+    for (const skill of domainsToDecay) {
+      const decayResult = decayResults.get(skill.domain)!;
+
+      // Calculate new XP based on new level
+      // Formula: XP for level N = (N - 1) * 100
+      const newXp = (decayResult.newLevel - 1) * 100;
+
+      console.log(
+        `  - ${skill.domain}: Level ${skill.level} → ${decayResult.newLevel} (${decayResult.daysInactive} days inactive)`
+      );
+
+      // Update the domain skill
+      const { error: updateError } = await supabase
+        .from('domain_skills')
+        .update({
+          level: decayResult.newLevel,
+          xp: newXp,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', skill.id);
+
+      if (updateError) {
+        console.error(`❌ Error updating ${skill.domain}:`, updateError);
+        // Continue with other domains even if one fails
+      }
+    }
+
+    // Generate summary message
+    const message = getDecaySummaryMessage(domainSkills, decayResults);
+
+    console.log('✅ Skill decay applied successfully');
+
+    return {
+      success: true,
+      decayApplied: true,
+      message: message || undefined,
+      decayedDomains: domainsToDecay.map((s) => s.domain),
+    };
+  } catch (error) {
+    console.error('❌ Apply decay exception:', error);
+    return {
+      success: false,
+      decayApplied: false,
+      error: String(error),
+    };
   }
 };
