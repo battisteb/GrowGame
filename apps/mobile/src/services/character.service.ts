@@ -167,9 +167,16 @@ export const userHasCharacter = async (userId: string): Promise<boolean> => {
  * Should be called when a habit is completed
  *
  * Returns the bonus coins if a milestone was reached
+ *
+ * @param previousValues - Optional previous values to use for calculation (to avoid race condition with trigger)
  */
 export const updateStreak = async (
-  characterId: string
+  characterId: string,
+  previousValues?: {
+    lastActivityDate: string | null;
+    currentStreak: number;
+    longestStreak: number;
+  }
 ): Promise<{
   success: boolean;
   bonusCoins?: number;
@@ -180,27 +187,43 @@ export const updateStreak = async (
   try {
     console.log('🔥 Updating streak for character:', characterId);
 
-    // Get current character data
-    const { data: character, error: fetchError } = await supabase
-      .from('characters')
-      .select('current_streak, longest_streak, last_activity_date')
-      .eq('id', characterId)
-      .single();
+    let lastActivityDate: string | null;
+    let currentStreak: number;
+    let longestStreak: number;
 
-    if (fetchError || !character) {
-      console.error('❌ Error fetching character for streak:', fetchError);
-      return { success: false, error: fetchError?.message || 'Character not found' };
+    // Use provided values or fetch from database
+    if (previousValues) {
+      console.log('📋 Using provided previous values:', previousValues);
+      lastActivityDate = previousValues.lastActivityDate;
+      currentStreak = previousValues.currentStreak;
+      longestStreak = previousValues.longestStreak;
+    } else {
+      // Get current character data
+      const { data: character, error: fetchError } = await supabase
+        .from('characters')
+        .select('current_streak, longest_streak, last_activity_date')
+        .eq('id', characterId)
+        .single();
+
+      if (fetchError || !character) {
+        console.error('❌ Error fetching character for streak:', fetchError);
+        return { success: false, error: fetchError?.message || 'Character not found' };
+      }
+
+      lastActivityDate = character.last_activity_date;
+      currentStreak = character.current_streak;
+      longestStreak = character.longest_streak;
     }
 
     // Calculate new streak
     const streakResult = calculateStreak(
-      character.last_activity_date,
-      character.current_streak,
-      character.longest_streak
+      lastActivityDate,
+      currentStreak,
+      longestStreak
     );
 
     console.log('📊 Streak calculation:', {
-      previous: character.current_streak,
+      previous: currentStreak,
       new: streakResult.currentStreak,
       longest: streakResult.longestStreak,
       bonus: streakResult.bonusAmount,
