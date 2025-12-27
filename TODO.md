@@ -2,7 +2,7 @@
 
 > Roadmap et suivi du développement
 
-**Dernière mise à jour** : 2025-12-21
+**Dernière mise à jour** : 2025-12-27
 
 ---
 
@@ -30,9 +30,9 @@ Une application mobile de gamification de la discipline personnelle où :
 
 ```
 Phase 0 : Setup & Infrastructure          ✅ TERMINÉE
-Phase 1 : Backend & Auth                  🔄 EN COURS
-Phase 2 : Core Loop MVP                   ⏳ À VENIR
-Phase 3 : Gamification                    ⏳ À VENIR
+Phase 1 : Backend & Auth                  ✅ TERMINÉE
+Phase 2 : Core Loop MVP                   ✅ TERMINÉE
+Phase 3 : Gamification                    🔄 EN COURS
 Phase 4 : Shop & Cosmétiques              ⏳ À VENIR
 Phase 5 : Polish & Amélioration           ⏳ À VENIR
 ```
@@ -57,7 +57,7 @@ Phase 5 : Polish & Amélioration           ⏳ À VENIR
 
 ---
 
-## Phase 1 : Backend & Auth 🔄
+## Phase 1 : Backend & Auth ✅
 
 **Objectif** : Mettre en place Supabase et l'authentification
 
@@ -92,219 +92,202 @@ Phase 5 : Polish & Amélioration           ⏳ À VENIR
 
 ---
 
-### [0004] - Authentification avec Supabase
+### [0004] - Authentification avec Supabase ✅
 
 **Responsable** : Dev A
 
+**Status** : TERMINÉ (commit: 85630c2, PR #2)
+
 **Tâches** :
-- [ ] Créer le service `src/services/auth.service.ts`
-  - [ ] Fonction `signUp(email, password, characterName)`
-  - [ ] Fonction `signIn(email, password)`
-  - [ ] Fonction `signOut()`
-  - [ ] Fonction `getCurrentUser()`
-- [ ] Créer le store `src/stores/authStore.ts`
-  - [ ] État `user`, `loading`, `error`
-  - [ ] Actions login/logout/signup
-- [ ] Implémenter l'écran Login (`app/(auth)/login.tsx`)
-- [ ] Implémenter l'écran Register (`app/(auth)/register.tsx`)
-- [ ] Créer la logique de redirection (connecté → tabs, déconnecté → auth)
-- [ ] Gérer la persistance de session
+- [x] Créer le service `src/services/auth.service.ts`
+  - [x] Fonction `signUp(email, password, characterName)`
+  - [x] Fonction `signIn(email, password)`
+  - [x] Fonction `signOut()`
+  - [x] Fonction `getCurrentUser()`
+- [x] Créer le store `src/stores/authStore.ts`
+  - [x] État `user`, `loading`, `error`
+  - [x] Actions login/logout/signup
+- [x] Implémenter l'écran Login (`app/(auth)/login.tsx`)
+- [x] Implémenter l'écran Register (`app/(auth)/register.tsx`)
+- [x] Créer la logique de redirection (connecté → tabs, déconnecté → auth)
+- [x] Gérer la persistance de session
 
 **Fichiers clés** :
-- `src/services/auth.service.ts`
-- `src/stores/authStore.ts`
-- `app/(auth)/login.tsx`
-- `app/(auth)/register.tsx`
-- `app/index.tsx` (logique de redirection)
+- `apps/mobile/src/services/auth.service.ts`
+- `apps/mobile/src/stores/authStore.ts`
+- `apps/mobile/app/(auth)/login.tsx`
+- `apps/mobile/app/(auth)/register.tsx`
+- `apps/mobile/app/index.tsx`
 
 **Critères de "done"** :
-- Un utilisateur peut créer un compte
-- Un utilisateur peut se connecter
-- La session persiste au redémarrage de l'app
-- Les écrans redirigent correctement
+- ✅ Un utilisateur peut créer un compte
+- ✅ Un utilisateur peut se connecter
+- ✅ La session persiste au redémarrage de l'app
+- ✅ Les écrans redirigent correctement
 
 ---
 
-### [0005] - Création du personnage au signup
+### [0005] - Création du personnage au signup ✅
 
 **Responsable** : Dev A
 
+**Status** : TERMINÉ (commit: c9f0d76, PR #3)
+
 **Tâches** :
-- [ ] À l'inscription, créer automatiquement un `character`
-- [ ] Initialiser les 5 `domain_skills` à niveau 1
-- [ ] Nom du personnage = nom fourni à l'inscription
-- [ ] Valeurs par défaut : level 1, 0 XP, 0 coins, humeur neutre
+- [x] À l'inscription, créer automatiquement un `character`
+- [x] Initialiser les 5 `domain_skills` à niveau 1
+- [x] Nom du personnage = nom fourni à l'inscription
+- [x] Valeurs par défaut : level 1, 0 XP, 0 coins, humeur neutre
 
 **Fichiers clés** :
-- `src/services/character.service.ts`
-- `src/stores/authStore.ts` (appeler la création de character)
+- `apps/mobile/src/services/character.service.ts`
+- `apps/mobile/src/stores/authStore.ts`
 
 **Critères de "done"** :
-- Après signup, un character est créé en DB
-- Les 5 domain_skills sont initialisés
+- ✅ Après signup, un character est créé en DB
+- ✅ Les 5 domain_skills sont initialisés
 
 ---
 
-## Phase 2 : Core Loop MVP ⏳
+## Phase 2 : Core Loop MVP ✅
 
 **Objectif** : Boucle de jeu de base fonctionnelle
 
-### [0004] - Affichage du personnage
+### [0006] - Affichage du personnage et dashboard ✅
 
 **Responsable** : Dev A
 
+**Status** : TERMINÉ (commit: b32e9a7, PR #4)
+
 **Tâches** :
-- [ ] Créer `src/services/character.service.ts`
-  - [ ] `getCharacter(userId)`
-  - [ ] `getDomainSkills(characterId)`
-- [ ] Créer `src/stores/characterStore.ts`
-- [ ] Afficher les stats dans `app/(tabs)/character.tsx`
-  - [ ] Nom, niveau global, XP, coins
-  - [ ] Liste des 5 domaines avec niveau et XP
-  - [ ] Barres de progression XP
-- [ ] Afficher l'humeur (emoji)
+- [x] Créer `src/services/character.service.ts`
+  - [x] `getCharacter(userId)`
+  - [x] `getDomainSkills(characterId)`
+- [x] Créer `src/stores/characterStore.ts`
+- [x] Afficher les stats dans `app/(tabs)/home.tsx`
+  - [x] Nom, niveau global, XP, coins
+  - [x] Liste des 5 domaines avec niveau et XP
+  - [x] Barres de progression XP
+  - [x] Dashboard avec résumé quotidien
+  - [x] Streak actuel
+- [x] Afficher l'humeur (emoji)
+- [x] Calcul automatique des niveaux (XP → Level)
 
 **Fichiers clés** :
-- `src/services/character.service.ts`
-- `src/stores/characterStore.ts`
-- `app/(tabs)/character.tsx`
+- `apps/mobile/src/services/character.service.ts`
+- `apps/mobile/src/stores/characterStore.ts`
+- `apps/mobile/app/(tabs)/home.tsx`
+- `apps/mobile/src/utils/xpCalculator.ts`
 
 **Critères de "done"** :
-- L'écran Character affiche les vraies données de la DB
-- Les barres de progression sont fonctionnelles
+- ✅ L'écran Home affiche les vraies données de la DB
+- ✅ Les barres de progression sont fonctionnelles
+- ✅ Le niveau se calcule automatiquement depuis l'XP
 
 ---
 
-### [0005] - CRUD des habitudes
+### [0007] - CRUD des habitudes ✅
 
 **Responsable** : Dev B
 
+**Status** : TERMINÉ (commit: 32120f0, PR #5)
+
 **Tâches** :
-- [ ] Créer `src/services/habits.service.ts`
-  - [ ] `getHabits(characterId)`
-  - [ ] `createHabit(characterId, domain, name, difficulty)`
-  - [ ] `updateHabit(habitId, data)`
-  - [ ] `deleteHabit(habitId)`
-- [ ] Créer `src/stores/habitsStore.ts`
-- [ ] Implémenter l'écran `app/(tabs)/habits.tsx`
-  - [ ] Liste des habitudes du jour
-  - [ ] Bouton "Ajouter une habitude"
-  - [ ] Checkbox de complétion (sans validation photo pour l'instant)
-- [ ] Modal/écran de création d'habitude
-  - [ ] Choix du domaine
-  - [ ] Nom de l'habitude
-  - [ ] Difficulté (1-3 étoiles)
+- [x] Créer `src/services/habits.service.ts`
+  - [x] `getHabits(characterId)`
+  - [x] `createHabit(characterId, domain, name, difficulty)`
+  - [x] `updateHabit(habitId, data)`
+  - [x] `deleteHabit(habitId)`
+- [x] Créer `src/stores/habitsStore.ts`
+- [x] Implémenter l'écran de gestion des habitudes
+  - [x] Liste des habitudes
+  - [x] Bouton "Ajouter une habitude"
+  - [x] Formulaire de création/édition
+- [x] Modal/écran de création d'habitude
+  - [x] Choix du domaine
+  - [x] Nom de l'habitude
+  - [x] Difficulté (facile/moyen/difficile)
 
 **Fichiers clés** :
-- `src/services/habits.service.ts`
-- `src/stores/habitsStore.ts`
-- `app/(tabs)/habits.tsx`
-- `src/features/habits/components/HabitForm.tsx`
+- `apps/mobile/src/services/habits.service.ts`
+- `apps/mobile/src/stores/habitsStore.ts`
+- `apps/mobile/app/(tabs)/habits/index.tsx`
+- `apps/mobile/app/(tabs)/habits/new.tsx`
 
 **Critères de "done"** :
-- L'utilisateur peut créer/modifier/supprimer des habitudes
-- Les habitudes s'affichent dans l'onglet Habits
+- ✅ L'utilisateur peut créer/modifier/supprimer des habitudes
+- ✅ Les habitudes s'affichent correctement
 
 ---
 
-### [0006] - Validation d'habitude (sans photo)
+### [0008] - Validation d'habitude (complétion) ✅
 
 **Responsable** : Dev B
 
+**Status** : TERMINÉ (commit: 5323d8e, PR #6)
+
 **Tâches** :
-- [ ] Créer `src/services/habitLogs.service.ts`
-  - [ ] `logHabitCompletion(habitId, photoUrl, xpEarned, coinsEarned)`
-- [ ] Implémenter la logique de validation simple (checkbox)
-- [ ] Calculer XP et coins selon la difficulté
-- [ ] Créer l'entrée dans `habit_logs`
-- [ ] Mettre à jour le character (XP, coins)
-- [ ] Mettre à jour le domain_skill correspondant
-- [ ] Empêcher la validation multiple le même jour
+- [x] Créer `src/services/habitLogs.service.ts`
+  - [x] `completeHabit(habit, characterId)`
+  - [x] `uncompleteHabit(habitId, characterId)`
+  - [x] `getTodayLog(habitId)`
+- [x] Implémenter la logique de validation (toggle checkbox)
+- [x] Calculer XP et coins selon la difficulté
+- [x] Créer l'entrée dans `habit_logs`
+- [x] Mettre à jour le character (XP, coins) via RPC
+- [x] Mettre à jour le domain_skill correspondant via RPC
+- [x] Empêcher la validation multiple le même jour
 
 **Fichiers clés** :
-- `src/services/habitLogs.service.ts`
-- `src/stores/habitsStore.ts`
+- `apps/mobile/src/services/habitLogs.service.ts`
+- `apps/mobile/src/stores/habitsStore.ts`
+- `supabase/migrations/002_habit_log_trigger.sql`
 
 **Critères de "done"** :
-- Cocher une habitude donne XP et coins
-- Le personnage monte en XP
-- Le domain_skill monte en XP
-- On ne peut valider qu'une fois par jour
+- ✅ Cocher une habitude donne XP et coins
+- ✅ Le personnage monte en XP
+- ✅ Le domain_skill monte en XP
+- ✅ On ne peut valider qu'une fois par jour
 
 ---
 
-### [0007] - Calcul des niveaux et progression
-
-**Responsable** : Dev A
-
-**Tâches** :
-- [ ] Créer `src/utils/xpCalculator.ts`
-  - [ ] Utiliser les formules de `constants/game.ts`
-  - [ ] `calculateLevelFromXp(xp)`
-  - [ ] `getXpProgress(currentXp)`
-- [ ] À chaque gain d'XP :
-  - [ ] Recalculer le niveau global
-  - [ ] Recalculer le niveau du domaine
-  - [ ] Vérifier si level up (animation future)
-- [ ] Afficher le nouveau niveau en temps réel
-
-**Fichiers clés** :
-- `src/utils/xpCalculator.ts`
-- `src/services/character.service.ts`
-
-**Critères de "done"** :
-- Le niveau monte automatiquement quand l'XP requis est atteint
-- Les barres de progression reflètent la bonne valeur
+**Note** : Les fonctionnalités suivantes ont été intégrées dans [0006] et [0008] :
+- Calcul des niveaux et progression (via `xpCalculator.ts`)
+- Écran d'accueil / Dashboard (dans `home.tsx`)
 
 ---
 
-### [0008] - Écran d'accueil (Dashboard)
-
-**Responsable** : Ensemble
-
-**Tâches** :
-- [ ] Afficher un résumé dans `app/(tabs)/home.tsx`
-  - [ ] Nom du personnage + avatar placeholder
-  - [ ] Niveau global et XP
-  - [ ] Streak actuel
-  - [ ] Nombre d'habitudes complétées aujourd'hui
-  - [ ] Bouton rapide "Valider une habitude"
-- [ ] Créer un composant `CharacterSummary`
-
-**Fichiers clés** :
-- `app/(tabs)/home.tsx`
-- `src/components/domain/CharacterSummary.tsx`
-
-**Critères de "done"** :
-- L'écran Home affiche un dashboard fonctionnel
-
----
-
-## Phase 3 : Gamification ⏳
+## Phase 3 : Gamification 🔄
 
 **Objectif** : Ajouter les mécaniques de jeu avancées
 
-### [0009] - Système de streak
+### [0009] - Système de streak ✅
 
 **Responsable** : Dev B
 
+**Status** : TERMINÉ (commit: 70a3335, PR #7)
+
 **Tâches** :
-- [ ] Ajouter `last_activity_date` dans `characters`
-- [ ] Calculer le streak :
-  - [ ] Si activité aujourd'hui → streak continue
-  - [ ] Si 1 jour de gap → streak reset
-  - [ ] Stocker `current_streak` et `longest_streak`
-- [ ] Afficher le streak dans le dashboard
-- [ ] Bonus de 7 jours : +10 coins
+- [x] Utiliser `last_activity_date` existant dans `characters`
+- [x] Créer `streakCalculator.ts` avec logique de calcul
+- [x] Calculer le streak :
+  - [x] Si activité aujourd'hui → streak continue
+  - [x] Si 1 jour de gap → streak reset
+  - [x] Stocker `current_streak` et `longest_streak`
+- [x] Afficher le streak dans le dashboard
+- [x] Bonus aux milestones : 7, 14, 30, 60, 100 jours
+- [x] Intégration avec `completeHabit()`
+- [x] Correction race condition avec trigger DB
 
 **Fichiers clés** :
-- `src/utils/streakCalculator.ts`
-- `src/services/character.service.ts`
+- `apps/mobile/src/utils/streakCalculator.ts`
+- `apps/mobile/src/services/character.service.ts`
+- `apps/mobile/src/services/habitLogs.service.ts`
 
 **Critères de "done"** :
-- Le streak s'incrémente correctement
-- Le streak se reset après 1 jour d'inactivité
-- Bonus de 7 jours fonctionnel
+- ✅ Le streak s'incrémente correctement
+- ✅ Le streak se reset après 1 jour d'inactivité
+- ✅ Bonus aux milestones fonctionnel (7j=10 coins, etc.)
 
 ---
 
@@ -529,39 +512,38 @@ Phase 5 : Polish & Amélioration           ⏳ À VENIR
 
 ## 🎯 Tâche en Cours
 
-### [0004] - Authentification avec Supabase
+### [0010] - Système de decay (compétences)
 
-**Sprint actuel** : Phase 1 - Backend & Auth
+**Sprint actuel** : Phase 3 - Gamification
 
 **Responsable** : Dev A
 
-**Date de début** : 2025-12-21 (à venir)
+**Date de début** : 2025-12-27
 
 **Objectif** :
-Implémenter l'authentification complète (inscription, connexion, déconnexion) avec Supabase.
+Implémenter un système de decay pour les compétences non pratiquées, encourageant la régularité.
 
 **Tâches à faire** :
-- [ ] Créer le service d'authentification (`src/services/auth.service.ts`)
-- [ ] Créer le store Zustand pour l'auth (`src/stores/authStore.ts`)
-- [ ] Implémenter l'écran Login fonctionnel
-- [ ] Implémenter l'écran Register fonctionnel
-- [ ] Gérer la persistance de session
-- [ ] Implémenter la logique de redirection (auth vs tabs)
+- [ ] Créer `src/utils/decayCalculator.ts`
+  - [ ] Fonction `checkDecay(domainSkill, currentDate)`
+  - [ ] Règle : après 7 jours d'inactivité sur un domaine → decay
+  - [ ] Niveau minimum = `currentLevel / 2`
+- [ ] Intégrer dans `character.service.ts`
+  - [ ] Fonction `applyDecayToAllDomains(characterId)`
+- [ ] Appeler au lancement de l'app
+- [ ] Afficher un message si decay appliqué
 
 **Fichiers à créer/modifier** :
-- `src/services/auth.service.ts`
-- `src/stores/authStore.ts`
-- `app/(auth)/login.tsx`
-- `app/(auth)/register.tsx`
-- `app/index.tsx`
+- `apps/mobile/src/utils/decayCalculator.ts`
+- `apps/mobile/src/services/character.service.ts`
+- `apps/mobile/app/index.tsx` ou hook d'initialisation
 
 **Critères de "done"** :
-- Un utilisateur peut créer un compte
-- Un utilisateur peut se connecter
-- La session persiste au redémarrage
-- Redirection automatique selon l'état de connexion
+- Après 7 jours sans activité sur un domaine, le niveau baisse
+- Le niveau ne descend jamais en dessous de la moitié du niveau actuel
+- L'utilisateur est notifié du decay
 
-**Prochaine tâche** : [0005] Création du personnage au signup
+**Prochaine tâche** : [0011] Humeur du personnage
 
 ---
 
@@ -600,10 +582,17 @@ Implémenter l'authentification complète (inscription, connexion, déconnexion)
 
 ## Historique des Complétions
 
-| ID | Feature | Date | Dev | Commit |
-|----|---------|------|-----|--------|
-| 0000 | Initial setup | 2025-12-21 | Claude | b7977d1 |
+| ID | Feature | Date | Dev | Commit | PR |
+|----|---------|------|-----|--------|----|
+| 0000 | Initial setup | 2025-12-21 | Claude | b7977d1 | - |
+| 0003 | Setup Supabase | 2025-12-21 | Claude | 286dc6d | #1 |
+| 0004 | Authentification | 2025-12-21 | Claude | 85630c2 | #2 |
+| 0005 | Création personnage | 2025-12-22 | Claude | c9f0d76 | #3 |
+| 0006 | Affichage & Dashboard | 2025-12-23 | Claude | b32e9a7 | #4 |
+| 0007 | CRUD Habitudes | 2025-12-24 | Claude | 32120f0 | #5 |
+| 0008 | Complétion Habitudes | 2025-12-25 | Claude | 5323d8e | #6 |
+| 0009 | Système de streak | 2025-12-27 | Claude | 70a3335 | #7 |
 
 ---
 
-**Prochaine révision** : Après [0003] (création de personnage)
+**Prochaine révision** : Après [0010] (système de decay)

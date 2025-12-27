@@ -12,6 +12,7 @@ import type { Character, DomainSkill } from '../types';
 import {
   getCharacterByUserId,
   getDomainSkills,
+  applyDecayToAllDomains,
 } from '../services/character.service';
 
 interface CharacterState {
@@ -20,11 +21,13 @@ interface CharacterState {
   domainSkills: DomainSkill[];
   isLoading: boolean;
   error: string | null;
+  decayMessage: string | null;
 
   // Actions
   loadCharacter: (userId: string) => Promise<void>;
   refreshCharacter: () => Promise<void>;
   clearCharacter: () => void;
+  clearDecayMessage: () => void;
 }
 
 export const useCharacterStore = create<CharacterState>((set, get) => ({
@@ -33,6 +36,7 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
   domainSkills: [],
   isLoading: false,
   error: null,
+  decayMessage: null,
 
   /**
    * Load character and domain skills for a user
@@ -65,12 +69,30 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
         return;
       }
 
-      set({
-        character: characterResult.character,
-        domainSkills: skillsResult.skills || [],
-        isLoading: false,
-        error: null,
-      });
+      // Check and apply skill decay
+      const decayResult = await applyDecayToAllDomains(characterResult.character.id);
+
+      // If decay was applied, reload the skills to get updated values
+      if (decayResult.success && decayResult.decayApplied) {
+        console.log('📉 Skill decay applied, reloading skills...');
+        const refreshedSkillsResult = await getDomainSkills(characterResult.character.id);
+
+        set({
+          character: characterResult.character,
+          domainSkills: refreshedSkillsResult.skills || [],
+          isLoading: false,
+          error: null,
+          decayMessage: decayResult.message || null,
+        });
+      } else {
+        set({
+          character: characterResult.character,
+          domainSkills: skillsResult.skills || [],
+          isLoading: false,
+          error: null,
+          decayMessage: null,
+        });
+      }
     } catch (error) {
       console.error('❌ Load character exception:', error);
       set({
@@ -103,6 +125,14 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
       domainSkills: [],
       isLoading: false,
       error: null,
+      decayMessage: null,
     });
+  },
+
+  /**
+   * Clear decay message after user has seen it
+   */
+  clearDecayMessage: () => {
+    set({ decayMessage: null });
   },
 }));

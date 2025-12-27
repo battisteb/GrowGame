@@ -29,13 +29,13 @@ const DOMAIN_COLORS: Record<Domain, string> = {
 };
 
 export function DomainSkillCard({ skill }: DomainSkillCardProps) {
-  // xpForLevel(n) gives cumulative XP to reach level n+1
-  // So xpForLevel(1) = 50 XP to go from level 1 to level 2
-  const xpNeeded = xpForLevel(skill.level);
-  const xpForCurrentLevel = skill.level > 1 ? xpForLevel(skill.level - 1) : 0;
-  const xpInThisLevel = skill.xp - xpForCurrentLevel;
-  const xpNeededForNextLevel = xpNeeded - xpForCurrentLevel;
-  const progress = Math.min((xpInThisLevel / xpNeededForNextLevel) * 100, 100);
+  // Calculate XP progress in current level
+  // xpForLevel(n) gives cumulative XP needed to reach level n from level 0
+  const xpAtCurrentLevel = xpForLevel(skill.level);
+  const xpAtNextLevel = xpForLevel(skill.level + 1);
+  const xpInThisLevel = Math.max(0, skill.xp - xpAtCurrentLevel);
+  const xpNeededForNextLevel = xpAtNextLevel - xpAtCurrentLevel;
+  const progress = Math.min(Math.max(0, (xpInThisLevel / xpNeededForNextLevel) * 100), 100);
 
   const domainColor = DOMAIN_COLORS[skill.domain];
 
