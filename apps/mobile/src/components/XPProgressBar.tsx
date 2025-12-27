@@ -13,19 +13,19 @@ interface XPProgressBarProps {
 }
 
 export function XPProgressBar({ currentLevel, currentXP }: XPProgressBarProps) {
-  // xpForLevel(n) gives cumulative XP to reach level n+1
-  // So xpForLevel(1) = 50 XP to go from level 1 to level 2
-  const xpNeeded = xpForLevel(currentLevel);
-  const xpForCurrentLevel = currentLevel > 1 ? xpForLevel(currentLevel - 1) : 0;
-  const xpInThisLevel = currentXP - xpForCurrentLevel;
-  const xpNeededForNextLevel = xpNeeded - xpForCurrentLevel;
-  const progress = Math.min((xpInThisLevel / xpNeededForNextLevel) * 100, 100);
+  // Calculate XP progress in current level
+  // xpForLevel(n) gives cumulative XP needed to reach level n from level 0
+  const xpAtCurrentLevel = xpForLevel(currentLevel);
+  const xpAtNextLevel = xpForLevel(currentLevel + 1);
+  const xpInThisLevel = Math.max(0, currentXP - xpAtCurrentLevel);
+  const xpNeededForNextLevel = xpAtNextLevel - xpAtCurrentLevel;
+  const progress = Math.min(Math.max(0, (xpInThisLevel / xpNeededForNextLevel) * 100), 100);
 
   return (
     <View style={styles.container}>
       <View style={styles.labelContainer}>
         <Text style={styles.label}>
-          {currentXP} / {xpNeeded} XP
+          {currentXP} / {xpAtNextLevel} XP
         </Text>
         <Text style={styles.nextLevel}>Niveau {currentLevel + 1}</Text>
       </View>

@@ -1,16 +1,29 @@
+import { useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../src/stores/authStore';
 import { useCharacterStore } from '../../src/stores/characterStore';
-import { showConfirmAlert } from '../../src/utils/alert';
+import { showAlert, showConfirmAlert } from '../../src/utils/alert';
 import { XPProgressBar } from '../../src/components/XPProgressBar';
 import { DomainSkillCard } from '../../src/components/DomainSkillCard';
 
 export default function HomeScreen() {
   const router = useRouter();
   const { user, logout } = useAuthStore();
-  const { character, domainSkills, isLoading } = useCharacterStore();
+  const { character, domainSkills, isLoading, decayMessage, clearDecayMessage } = useCharacterStore();
+
+  // Display decay notification when skills have decayed
+  useEffect(() => {
+    if (decayMessage) {
+      showAlert('Compétences en déclin', decayMessage, [
+        {
+          text: 'OK',
+          onPress: () => clearDecayMessage(),
+        },
+      ]);
+    }
+  }, [decayMessage, clearDecayMessage]);
 
   const handleLogout = () => {
     showConfirmAlert(
