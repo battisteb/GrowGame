@@ -11,6 +11,7 @@
 import { supabase } from './supabase';
 import type { HabitLog, Habit } from '../types';
 import { XP_REWARDS, COIN_REWARDS } from '../constants/game';
+import { updateStreak } from './character.service';
 
 // =============================================================================
 // GET HABIT LOGS
@@ -113,6 +114,9 @@ export interface CompleteHabitResult {
   log?: HabitLog;
   xpEarned?: number;
   coinsEarned?: number;
+  streakBonus?: number;
+  streakMessage?: string;
+  currentStreak?: number;
   error?: string;
 }
 
@@ -125,6 +129,7 @@ export interface CompleteHabitResult {
  * 3. Creates a habit_log entry
  * 4. Updates character (global XP, coins)
  * 5. Updates domain_skill (domain XP)
+ * 6. Updates streak and awards milestone bonuses
  */
 export const completeHabit = async (
   habit: Habit,
@@ -194,8 +199,16 @@ export const completeHabit = async (
       // Continue anyway - log was created
     }
 
+    // Step 6: Update streak and check for bonus
+    const streakResult = await updateStreak(characterId);
+
+    let bonusMessage = '';
+    if (streakResult.success && streakResult.bonusCoins && streakResult.bonusCoins > 0) {
+      bonusMessage = ` | 🔥 Streak bonus: +${streakResult.bonusCoins} coins!`;
+    }
+
     console.log(
-      `✅ Habit completed: ${habit.name} (+${xpEarned} XP, +${coinsEarned} coins)`
+      `✅ Habit completed: ${habit.name} (+${xpEarned} XP, +${coinsEarned} coins${bonusMessage})`
     );
 
     return {
@@ -203,6 +216,9 @@ export const completeHabit = async (
       log,
       xpEarned,
       coinsEarned,
+      streakBonus: streakResult.bonusCoins,
+      streakMessage: streakResult.message,
+      currentStreak: streakResult.currentStreak,
     };
   } catch (error) {
     console.error('❌ Exception in completeHabit:', error);
