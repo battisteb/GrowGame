@@ -9,6 +9,7 @@
 
 import { supabase } from './supabase';
 import type { Character, DomainSkill, Domain } from '../types';
+import { calculateStreak, getStreakMilestoneMessage } from '../utils/streakCalculator';
 
 /**
  * The 5 core domains for skill tracking
@@ -158,5 +159,123 @@ export const userHasCharacter = async (userId: string): Promise<boolean> => {
   } catch (error) {
     console.error('❌ Check character exists exception:', error);
     return false;
+  }
+};
+
+/**
+ * Update character streak based on activity
+ * Should be called when a habit is completed
+ *
+ * Returns the bonus coins if a milestone was reached
+ *
+ * @param previousValues - Optional previous values to use for calculation (to avoid race condition with trigger)
+ */
+export const updateStreak = async (
+  characterId: string,
+  previousValues?: {
+    lastActivityDate: string | null;
+    currentStreak: number;
+    longestStreak: number;
+  }
+): Promise<{
+  success: boolean;
+  bonusCoins?: number;
+  message?: string;
+  currentStreak?: number;
+  error?: string
+}> => {
+  try {
+    console.log('🔥 Updating streak for character:', characterId);
+
+    let lastActivityDate: string | null;
+    let currentStreak: number;
+    let longestStreak: number;
+
+    // Use provided values or fetch from database
+    if (previousValues) {
+      console.log('📋 Using provided previous values:', previousValues);
+      lastActivityDate = previousValues.lastActivityDate;
+      currentStreak = previousValues.currentStreak;
+      longestStreak = previousValues.longestStreak;
+    } else {
+      // Get current character data
+      const { data: character, error: fetchError } = await supabase
+        .from('characters')
+        .select('current_streak, longest_streak, last_activity_date')
+        .eq('id', characterId)
+        .single();
+
+      if (fetchError || !character) {
+        console.error('❌ Error fetching character for streak:', fetchError);
+        return { success: false, error: fetchError?.message || 'Character not found' };
+      }
+
+      lastActivityDate = character.last_activity_date;
+      currentStreak = character.current_streak;
+      longestStreak = character.longest_streak;
+    }
+
+    // Calculate new streak
+    const streakResult = calculateStreak(
+      lastActivityDate,
+      currentStreak,
+      longestStreak
+    );
+
+    console.log('📊 Streak calculation:', {
+      previous: currentStreak,
+      new: streakResult.currentStreak,
+      longest: streakResult.longestStreak,
+      bonus: streakResult.bonusAmount,
+    });
+
+    // Update character with new streak values
+    const updateData: any = {
+      current_streak: streakResult.currentStreak,
+      longest_streak: streakResult.longestStreak,
+      updated_at: new Date().toISOString(),
+    };
+
+    // Add bonus coins if milestone reached
+    if (streakResult.shouldAwardBonus && streakResult.bonusAmount > 0) {
+      console.log(`🎁 Streak milestone reached! Bonus: +${streakResult.bonusAmount} coins`);
+
+      // Increment coins
+      const { error: coinsError } = await supabase.rpc('add_character_rewards', {
+        p_character_id: characterId,
+        p_xp: 0,
+        p_coins: streakResult.bonusAmount,
+      });
+
+      if (coinsError) {
+        console.error('❌ Error adding streak bonus:', coinsError);
+      }
+    }
+
+    const { error: updateError } = await supabase
+      .from('characters')
+      .update(updateData)
+      .eq('id', characterId);
+
+    if (updateError) {
+      console.error('❌ Error updating streak:', updateError);
+      return { success: false, error: updateError.message };
+    }
+
+    const message = streakResult.shouldAwardBonus
+      ? getStreakMilestoneMessage(streakResult.currentStreak)
+      : null;
+
+    console.log(`✅ Streak updated successfully: ${streakResult.currentStreak} days`);
+
+    return {
+      success: true,
+      bonusCoins: streakResult.shouldAwardBonus ? streakResult.bonusAmount : 0,
+      message: message || undefined,
+      currentStreak: streakResult.currentStreak,
+    };
+  } catch (error) {
+    console.error('❌ Update streak exception:', error);
+    return { success: false, error: String(error) };
   }
 };

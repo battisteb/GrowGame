@@ -11,6 +11,7 @@
 import { supabase } from './supabase';
 import type { HabitLog, Habit } from '../types';
 import { XP_REWARDS, COIN_REWARDS } from '../constants/game';
+import { updateStreak } from './character.service';
 
 // =============================================================================
 // GET HABIT LOGS
@@ -113,6 +114,9 @@ export interface CompleteHabitResult {
   log?: HabitLog;
   xpEarned?: number;
   coinsEarned?: number;
+  streakBonus?: number;
+  streakMessage?: string;
+  currentStreak?: number;
   error?: string;
 }
 
@@ -121,10 +125,12 @@ export interface CompleteHabitResult {
  *
  * This function:
  * 1. Checks if habit was already completed today
- * 2. Calculates XP and coins based on difficulty
- * 3. Creates a habit_log entry
- * 4. Updates character (global XP, coins)
- * 5. Updates domain_skill (domain XP)
+ * 2. Fetches character streak values (before trigger updates them)
+ * 3. Calculates XP and coins based on difficulty
+ * 4. Creates a habit_log entry (trigger updates last_activity_date)
+ * 5. Updates character (global XP, coins)
+ * 6. Updates domain_skill (domain XP)
+ * 7. Updates streak and awards milestone bonuses
  */
 export const completeHabit = async (
   habit: Habit,
@@ -147,11 +153,24 @@ export const completeHabit = async (
       };
     }
 
-    // Step 2: Calculate rewards based on difficulty
+    // Step 2: Fetch character streak values BEFORE creating the log
+    // (to avoid race condition with the trigger that updates last_activity_date)
+    const { data: character, error: charFetchError } = await supabase
+      .from('characters')
+      .select('current_streak, longest_streak, last_activity_date')
+      .eq('id', characterId)
+      .single();
+
+    if (charFetchError || !character) {
+      console.error('❌ Error fetching character for streak:', charFetchError);
+      // Continue anyway - this is not critical
+    }
+
+    // Step 3: Calculate rewards based on difficulty
     const xpEarned = XP_REWARDS[habit.difficulty];
     const coinsEarned = COIN_REWARDS[habit.difficulty];
 
-    // Step 3: Create habit_log entry
+    // Step 4: Create habit_log entry
     const { data: log, error: logError } = await supabase
       .from('habit_logs')
       .insert({
@@ -170,7 +189,7 @@ export const completeHabit = async (
       return { success: false, error: logError.message };
     }
 
-    // Step 4: Update character (global XP and coins)
+    // Step 5: Update character (global XP and coins)
     const { error: characterError } = await supabase.rpc('add_character_rewards', {
       p_character_id: characterId,
       p_xp: xpEarned,
@@ -182,7 +201,7 @@ export const completeHabit = async (
       // Continue anyway - log was created
     }
 
-    // Step 5: Update domain_skill (domain XP)
+    // Step 6: Update domain_skill (domain XP)
     const { error: skillError } = await supabase.rpc('add_domain_skill_xp', {
       p_character_id: characterId,
       p_domain: habit.domain,
@@ -194,8 +213,27 @@ export const completeHabit = async (
       // Continue anyway - log was created
     }
 
+    // Step 7: Update streak and check for bonus
+    // Pass the previous values we fetched BEFORE creating the log
+    // to avoid race condition with the trigger
+    const streakResult = await updateStreak(
+      characterId,
+      character
+        ? {
+            lastActivityDate: character.last_activity_date,
+            currentStreak: character.current_streak,
+            longestStreak: character.longest_streak,
+          }
+        : undefined
+    );
+
+    let bonusMessage = '';
+    if (streakResult.success && streakResult.bonusCoins && streakResult.bonusCoins > 0) {
+      bonusMessage = ` | 🔥 Streak bonus: +${streakResult.bonusCoins} coins!`;
+    }
+
     console.log(
-      `✅ Habit completed: ${habit.name} (+${xpEarned} XP, +${coinsEarned} coins)`
+      `✅ Habit completed: ${habit.name} (+${xpEarned} XP, +${coinsEarned} coins${bonusMessage})`
     );
 
     return {
@@ -203,6 +241,9 @@ export const completeHabit = async (
       log,
       xpEarned,
       coinsEarned,
+      streakBonus: streakResult.bonusCoins,
+      streakMessage: streakResult.message,
+      currentStreak: streakResult.currentStreak,
     };
   } catch (error) {
     console.error('❌ Exception in completeHabit:', error);
