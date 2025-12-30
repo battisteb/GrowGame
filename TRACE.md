@@ -2,7 +2,7 @@
 
 > Historique des décisions techniques et modifications importantes
 
-**Dernière mise à jour** : 2025-12-27
+**Dernière mise à jour** : 2025-12-30
 
 ---
 
@@ -746,6 +746,175 @@ Ajout de 34 items variés :
 - **Local ownership check**: Évite appels DB inutiles
 - **Atomic operations**: Coins déduction + item add
 - **Error handling**: Rollback automatique si échec partiel
+
+---
+
+### [2025-12-30] [0014] Équipement du Personnage
+
+**Commits**: `dc52a72`, `9f43d8b` | **PR**: TBD
+
+**Actions**:
+- Implémentation complète du système d'équipement
+- Gestion des slots d'équipement (5 slots pour cosmétiques)
+- Interface de gestion avec modal par slot
+- Intégration avec la boutique (équipement direct)
+- Refonte de l'écran personnage avec données réelles
+
+**Fichiers créés**:
+- `apps/mobile/src/services/equipment.service.ts`
+- `apps/mobile/src/components/EquipmentModal.tsx`
+
+**Fichiers modifiés**:
+- `apps/mobile/src/stores/characterStore.ts` (ajout equipment state)
+- `apps/mobile/app/(tabs)/character.tsx` (refonte complète)
+- `apps/mobile/app/(tabs)/shop.tsx` (bouton équiper)
+
+**Service Equipment**:
+```typescript
+// equipment.service.ts
+- getEquippedItems(characterId): Fetch avec JOIN shop_items
+- getAvailableItemsForSlot(userId, slot): Items possédés par slot
+- equipItem({characterId, itemId, userId}):
+  * Validation type === 'cosmetic'
+  * Validation ownership dans user_items
+  * UPSERT avec onConflict(character_id, slot)
+- unequipItem(characterId, slot): DELETE du slot
+
+// Helpers de transformation
+- transformEquipment(): snake_case → camelCase
+- transformShopItem(): Réutilise la logique shop
+```
+
+**Store Updates**:
+```typescript
+// characterStore.ts - Ajouts
+- State:
+  * equipment: (Equipment & { shop_item: ShopItem })[]
+  * isLoadingEquipment: boolean
+- Actions:
+  * loadEquipment(characterId): Charge les items équipés
+  * equipItem(characterId, itemId, userId): Équipe avec reload
+  * unequipItem(characterId, slot): Déséquipe avec reload
+  * clearEquipment(): Nettoyage sur logout
+```
+
+**Equipment Modal** (`EquipmentModal.tsx`):
+```typescript
+- Props: visible, slot, currentEquipment, characterId, userId
+- Actions: onClose, onEquip, onUnequip
+- UI:
+  * Header avec slot emoji + nom
+  * Bouton "❌ Retirer" si équipé
+  * FlatList des items disponibles pour le slot
+    - Rarity badge coloré
+    - Nom + description
+    - Item actuellement équipé indiqué
+    - Bouton "Équiper" par item
+  * État vide: "Achète des items dans la boutique !"
+- Pattern: Suit JournalPromptModal.tsx
+```
+
+**Character Screen Refonte**:
+```typescript
+// character.tsx - Changements majeurs
+AVANT: Placeholder avec données statiques
+APRÈS: Données dynamiques du characterStore
+
+- Connexion stores: useAuthStore, useCharacterStore
+- useEffect: loadCharacter + loadEquipment au mount
+- Section Avatar: Humeur avec emoji dynamique
+- Section Stats: Niveau/XP/Coins depuis character
+- Section Équipement (NOUVEAU):
+  * 5 slots en grille verticale
+  * Par slot:
+    - Emoji + nom du slot
+    - Si équipé: nom item + rarity badge
+    - Si vide: "Aucun équipement"
+    - Bouton "Gérer" → ouvre EquipmentModal
+- Section Domain Skills: Calcul XP correct avec xpForLevel()
+- Equipment Modal intégré avec gestion state local
+```
+
+**Shop Integration**:
+```typescript
+// shop.tsx - Amélioration UX
+- Import equipItem du characterStore
+- handleEquip(item): Équipe direct depuis shop
+- Logique renderShopItem:
+  * Si owned && isCosmetic → Bouton "⚡ Équiper" (violet)
+  * Sinon → Bouton "Acheter" ou "✓ Possédé"
+- Alert "Item équipé !" après équipement réussi
+```
+
+**Pattern UPSERT**:
+```sql
+-- Atomic slot replacement
+INSERT INTO equipments (character_id, slot, item_id)
+VALUES ($1, $2, $3)
+ON CONFLICT (character_id, slot)
+DO UPDATE SET item_id = EXCLUDED.item_id
+```
+
+**Validation Ownership**:
+```typescript
+// Vérification côté serveur
+1. Check item existe et type === 'cosmetic'
+2. Check user possède item (user_items.user_id + item_id)
+3. Si validation OK → UPSERT
+4. Sinon → Error "You do not own this item"
+```
+
+**Décisions Techniques**:
+- **Store unique**: Equipment dans characterStore plutôt que store séparé
+  * Raison: Équipements sont des attributs du personnage
+- **Modal vs Screen**: Modal pour sélection rapide
+  * Raison: Action contextuelle, pas de navigation lourde
+- **UPSERT pattern**: Garantit un seul item par slot
+  * Raison: Évite race conditions, opération atomique
+- **Transformation layer**: Consistency avec shop.service.ts
+- **Eager loading**: Equipment chargé avec character
+- **Shop integration**: Équipement direct pour meilleure UX
+
+**Flow d'équipement**:
+```
+Option 1 - Depuis Character Screen:
+1. Click "Gérer" sur un slot
+2. Modal s'ouvre avec items disponibles
+3. Click "Équiper" sur un item
+4. equipItem() côté serveur (validation + UPSERT)
+5. Reload equipment
+6. Modal se ferme
+7. Item visible dans le slot
+
+Option 2 - Depuis Shop (cosmétiques possédés):
+1. Click "⚡ Équiper" sur item cosmétique possédé
+2. equipItem() direct (validation + UPSERT)
+3. Alert "Item équipé !"
+4. Visible immédiatement sur Character screen
+
+Déséquipement:
+1. Click "Gérer" sur slot équipé
+2. Click "❌ Retirer l'équipement"
+3. unequipItem() DELETE le slot
+4. Slot affiche "Aucun équipement"
+```
+
+**Tests Manuels - Tous Passés**:
+- ✅ Chargement des 5 slots d'équipement
+- ✅ Achat + équipement depuis shop
+- ✅ Équipement via modal sur character screen
+- ✅ Remplacement d'item dans un slot (UPSERT)
+- ✅ Déséquipement d'un item
+- ✅ Items non-cosmétiques (déco, jokers) non équipables
+- ✅ État vide si aucun item pour un slot
+- ✅ Rarity badges avec couleurs correctes
+- ✅ Validation ownership côté serveur
+
+**Améliorations Futures** (Hors Scope):
+- Visual character preview avec items (sprite/avatar)
+- Equipment sets avec bonus stats
+- Item upgrade system
+- Equipment trading
 
 ---
 

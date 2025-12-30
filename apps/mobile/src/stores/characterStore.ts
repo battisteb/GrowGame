@@ -4,29 +4,40 @@
  * Global state management for character data:
  * - Character information (level, XP, coins, gems, mood, streak)
  * - Domain skills (études, sport, méditation, lecture, étirements)
+ * - Equipment (equipped cosmetic items)
  * - Loading states
  */
 
 import { create } from 'zustand';
-import type { Character, DomainSkill } from '../types';
+import type { Character, DomainSkill, Equipment, ShopItem, EquipmentSlot } from '../types';
 import {
   getCharacterByUserId,
   getDomainSkills,
   applyDecayToAllDomains,
   updateMood,
 } from '../services/character.service';
+import {
+  getEquippedItems,
+  equipItem as equipItemService,
+  unequipItem as unequipItemService,
+} from '../services/equipment.service';
 
 interface CharacterState {
   // State
   character: Character | null;
   domainSkills: DomainSkill[];
+  equipment: (Equipment & { shop_item: ShopItem })[];
   isLoading: boolean;
+  isLoadingEquipment: boolean;
   error: string | null;
   decayMessage: string | null;
 
   // Actions
   loadCharacter: (userId: string) => Promise<void>;
   refreshCharacter: () => Promise<void>;
+  loadEquipment: (characterId: string) => Promise<void>;
+  equipItem: (characterId: string, itemId: string, userId: string) => Promise<boolean>;
+  unequipItem: (characterId: string, slot: EquipmentSlot) => Promise<boolean>;
   clearCharacter: () => void;
   clearDecayMessage: () => void;
 }
@@ -35,7 +46,9 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
   // Initial state
   character: null,
   domainSkills: [],
+  equipment: [],
   isLoading: false,
+  isLoadingEquipment: false,
   error: null,
   decayMessage: null,
 
@@ -133,7 +146,9 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
     set({
       character: null,
       domainSkills: [],
+      equipment: [],
       isLoading: false,
+      isLoadingEquipment: false,
       error: null,
       decayMessage: null,
     });
@@ -144,5 +159,107 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
    */
   clearDecayMessage: () => {
     set({ decayMessage: null });
+  },
+
+  /**
+   * Load equipped items for a character
+   */
+  loadEquipment: async (characterId: string) => {
+    try {
+      set({ isLoadingEquipment: true, error: null });
+
+      const result = await getEquippedItems(characterId);
+
+      if (!result.success) {
+        set({
+          isLoadingEquipment: false,
+          error: result.error || 'Failed to load equipment',
+        });
+        return;
+      }
+
+      set({
+        equipment: result.equipment || [],
+        isLoadingEquipment: false,
+      });
+    } catch (error) {
+      console.error('❌ Exception in loadEquipment:', error);
+      set({
+        isLoadingEquipment: false,
+        error: String(error),
+      });
+    }
+  },
+
+  /**
+   * Equip an item to a character
+   *
+   * @returns true if successful, false otherwise
+   */
+  equipItem: async (characterId: string, itemId: string, userId: string) => {
+    try {
+      set({ isLoadingEquipment: true, error: null });
+
+      const result = await equipItemService({
+        characterId,
+        itemId,
+        userId,
+      });
+
+      if (!result.success) {
+        set({
+          isLoadingEquipment: false,
+          error: result.error || 'Failed to equip item',
+        });
+        return false;
+      }
+
+      // Reload equipment to reflect the change
+      await get().loadEquipment(characterId);
+
+      set({ isLoadingEquipment: false });
+      return true;
+    } catch (error) {
+      console.error('❌ Exception in equipItem:', error);
+      set({
+        isLoadingEquipment: false,
+        error: String(error),
+      });
+      return false;
+    }
+  },
+
+  /**
+   * Unequip an item from a character slot
+   *
+   * @returns true if successful, false otherwise
+   */
+  unequipItem: async (characterId: string, slot: EquipmentSlot) => {
+    try {
+      set({ isLoadingEquipment: true, error: null });
+
+      const result = await unequipItemService(characterId, slot);
+
+      if (!result.success) {
+        set({
+          isLoadingEquipment: false,
+          error: result.error || 'Failed to unequip item',
+        });
+        return false;
+      }
+
+      // Reload equipment to reflect the change
+      await get().loadEquipment(characterId);
+
+      set({ isLoadingEquipment: false });
+      return true;
+    } catch (error) {
+      console.error('❌ Exception in unequipItem:', error);
+      set({
+        isLoadingEquipment: false,
+        error: String(error),
+      });
+      return false;
+    }
   },
 }));

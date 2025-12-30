@@ -42,7 +42,7 @@ type FilterType = 'all' | ItemType;
 
 export default function ShopScreen() {
   const { user } = useAuthStore();
-  const { character, refreshCharacter } = useCharacterStore();
+  const { character, refreshCharacter, equipItem } = useCharacterStore();
   const {
     shopItems,
     isLoading,
@@ -56,6 +56,7 @@ export default function ShopScreen() {
   } = useShopStore();
 
   const [filter, setFilter] = useState<FilterType>('all');
+  const [isEquipping, setIsEquipping] = useState(false);
 
   // Load shop items and user inventory
   useEffect(() => {
@@ -110,6 +111,18 @@ export default function ShopScreen() {
     );
   };
 
+  const handleEquip = async (item: ShopItem) => {
+    if (!user?.id || !character?.id) return;
+
+    setIsEquipping(true);
+    const success = await equipItem(character.id, item.id, user.id);
+    setIsEquipping(false);
+
+    if (success) {
+      showAlert('Item équipé !', `"${item.name}" a été équipé !`);
+    }
+  };
+
   // Filter items based on selected filter
   const filteredItems = shopItems.filter((item) => {
     if (filter === 'all') return true;
@@ -126,6 +139,7 @@ export default function ShopScreen() {
   const renderShopItem = ({ item }: { item: ShopItem }) => {
     const owned = userOwnsItem(item.id);
     const canAfford = character ? character.coins >= item.priceCoins : false;
+    const isCosmetic = item.type === 'cosmetic' && item.slot;
 
     return (
       <View style={styles.itemCard}>
@@ -156,24 +170,38 @@ export default function ShopScreen() {
             <Text style={styles.priceText}>💰 {item.priceCoins}</Text>
           </View>
 
-          <TouchableOpacity
-            style={[
-              styles.buyButton,
-              owned && styles.ownedButton,
-              !canAfford && !owned && styles.disabledButton,
-            ]}
-            onPress={() => handlePurchase(item)}
-            disabled={owned || !canAfford || isPurchasing}
-          >
-            <Text
-              style={[
-                styles.buyButtonText,
-                owned && styles.ownedButtonText,
-              ]}
+          {owned && isCosmetic ? (
+            // Show "Équiper" button for owned cosmetics
+            <TouchableOpacity
+              style={styles.equipButton}
+              onPress={() => handleEquip(item)}
+              disabled={isEquipping}
             >
-              {owned ? '✓ Possédé' : canAfford ? 'Acheter' : 'Trop cher'}
-            </Text>
-          </TouchableOpacity>
+              <Text style={styles.equipButtonText}>
+                {isEquipping ? '...' : '⚡ Équiper'}
+              </Text>
+            </TouchableOpacity>
+          ) : (
+            // Show purchase button
+            <TouchableOpacity
+              style={[
+                styles.buyButton,
+                owned && styles.ownedButton,
+                !canAfford && !owned && styles.disabledButton,
+              ]}
+              onPress={() => handlePurchase(item)}
+              disabled={owned || !canAfford || isPurchasing}
+            >
+              <Text
+                style={[
+                  styles.buyButtonText,
+                  owned && styles.ownedButtonText,
+                ]}
+              >
+                {owned ? '✓ Possédé' : canAfford ? 'Acheter' : 'Trop cher'}
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     );
@@ -448,6 +476,17 @@ const styles = StyleSheet.create({
     color: '#ffffff',
   },
   ownedButtonText: {
+    color: '#ffffff',
+  },
+  equipButton: {
+    backgroundColor: '#8b5cf6',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  equipButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
     color: '#ffffff',
   },
   emptyContainer: {

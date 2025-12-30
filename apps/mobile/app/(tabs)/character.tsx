@@ -1,25 +1,117 @@
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { useEffect, useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  ActivityIndicator,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAuthStore } from '../../src/stores/authStore';
+import { useCharacterStore } from '../../src/stores/characterStore';
+import { EquipmentModal } from '../../src/components/EquipmentModal';
+import { DOMAIN_INFO, MOOD_EMOJIS, RARITY_COLORS, xpForLevel } from '../../src/constants/game';
+import type { EquipmentSlot, Equipment, ShopItem } from '../../src/types';
 
-const DOMAINS = [
-  { id: 'etudes', name: 'Études', emoji: '📖', level: 1, xp: 30, maxXp: 50 },
-  { id: 'sport', name: 'Sport', emoji: '💪', level: 2, xp: 80, maxXp: 200 },
-  { id: 'meditation', name: 'Méditation', emoji: '🧘', level: 1, xp: 10, maxXp: 50 },
-  { id: 'lecture', name: 'Lecture', emoji: '📚', level: 3, xp: 150, maxXp: 450 },
-  { id: 'etirements', name: 'Étirements', emoji: '🤸', level: 1, xp: 0, maxXp: 50 },
+// Slot labels with emojis
+const SLOT_LABELS: Record<EquipmentSlot, { name: string; emoji: string }> = {
+  couvre_chef: { name: 'Couvre-chef', emoji: '🎩' },
+  haut: { name: 'Haut', emoji: '👕' },
+  bas: { name: 'Bas', emoji: '👖' },
+  chaussures: { name: 'Chaussures', emoji: '👟' },
+  accessoire: { name: 'Accessoire', emoji: '✨' },
+};
+
+const EQUIPMENT_SLOTS: EquipmentSlot[] = [
+  'couvre_chef',
+  'haut',
+  'bas',
+  'chaussures',
+  'accessoire',
 ];
 
 export default function CharacterScreen() {
+  const { user } = useAuthStore();
+  const {
+    character,
+    domainSkills,
+    equipment,
+    isLoading,
+    isLoadingEquipment,
+    loadCharacter,
+    loadEquipment,
+    equipItem,
+    unequipItem,
+  } = useCharacterStore();
+
+  const [selectedSlot, setSelectedSlot] = useState<EquipmentSlot | null>(null);
+
+  // Load character and equipment on mount
+  useEffect(() => {
+    if (user?.id) {
+      loadCharacter(user.id);
+    }
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (character?.id) {
+      loadEquipment(character.id);
+    }
+  }, [character?.id]);
+
+  const handleEquipItem = async (itemId: string) => {
+    if (!character?.id || !user?.id) return;
+    await equipItem(character.id, itemId, user.id);
+  };
+
+  const handleUnequipItem = async () => {
+    if (!character?.id || !selectedSlot) return;
+    await unequipItem(character.id, selectedSlot);
+  };
+
+  // Find equipped item for a slot
+  const getEquippedItem = (slot: EquipmentSlot) => {
+    return equipment.find((eq) => eq.slot === slot);
+  };
+
+  const currentEquippedItem = selectedSlot ? getEquippedItem(selectedSlot) : undefined;
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.container} edges={['bottom']}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#6366f1" />
+          <Text style={styles.loadingText}>Chargement du personnage...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!character) {
+    return (
+      <SafeAreaView style={styles.container} edges={['bottom']}>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.errorText}>Personnage non trouvé</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  const moodEmoji = MOOD_EMOJIS[character.mood] || '😐';
+
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Character Avatar Placeholder */}
+        {/* Character Avatar */}
         <View style={styles.avatarContainer}>
           <View style={styles.avatar}>
             <Text style={styles.avatarEmoji}>🧑‍🎓</Text>
           </View>
           <Text style={styles.characterName}>Aventurier</Text>
-          <Text style={styles.mood}>Humeur: Motivé 😊</Text>
+          <Text style={styles.mood}>
+            Humeur: {character.mood} {moodEmoji}
+          </Text>
         </View>
 
         {/* Global Stats */}
@@ -27,47 +119,124 @@ export default function CharacterScreen() {
           <Text style={styles.sectionTitle}>Statistiques Globales</Text>
           <View style={styles.statsRow}>
             <View style={styles.statItem}>
-              <Text style={styles.statValue}>5</Text>
+              <Text style={styles.statValue}>{character.global_level}</Text>
               <Text style={styles.statLabel}>Niveau</Text>
             </View>
             <View style={styles.statItem}>
-              <Text style={styles.statValue}>1,250</Text>
+              <Text style={styles.statValue}>{character.global_xp.toLocaleString()}</Text>
               <Text style={styles.statLabel}>XP Total</Text>
             </View>
             <View style={styles.statItem}>
-              <Text style={styles.statValue}>142</Text>
+              <Text style={styles.statValue}>{character.coins}</Text>
               <Text style={styles.statLabel}>Pièces</Text>
             </View>
           </View>
         </View>
 
+        {/* Equipment Section */}
+        <View style={styles.equipmentCard}>
+          <Text style={styles.sectionTitle}>Équipement</Text>
+          {isLoadingEquipment ? (
+            <ActivityIndicator size="small" color="#6366f1" />
+          ) : (
+            <View style={styles.equipmentGrid}>
+              {EQUIPMENT_SLOTS.map((slot) => {
+                const equippedItem = getEquippedItem(slot);
+                const slotLabel = SLOT_LABELS[slot];
+                const rarityColor = equippedItem
+                  ? RARITY_COLORS[equippedItem.shop_item.rarity]
+                  : '#e5e7eb';
+
+                return (
+                  <View key={slot} style={styles.equipmentSlot}>
+                    <View style={styles.slotHeader}>
+                      <Text style={styles.slotEmoji}>{slotLabel.emoji}</Text>
+                      <Text style={styles.slotName}>{slotLabel.name}</Text>
+                    </View>
+
+                    {equippedItem ? (
+                      <View style={styles.equippedItemInfo}>
+                        <Text style={styles.equippedItemName}>
+                          {equippedItem.shop_item.name}
+                        </Text>
+                        <View
+                          style={[
+                            styles.rarityBadge,
+                            { backgroundColor: rarityColor },
+                          ]}
+                        >
+                          <Text style={styles.rarityText}>
+                            {equippedItem.shop_item.rarity}
+                          </Text>
+                        </View>
+                      </View>
+                    ) : (
+                      <Text style={styles.emptySlot}>Aucun équipement</Text>
+                    )}
+
+                    <TouchableOpacity
+                      style={styles.manageButton}
+                      onPress={() => setSelectedSlot(slot)}
+                    >
+                      <Text style={styles.manageButtonText}>Gérer</Text>
+                    </TouchableOpacity>
+                  </View>
+                );
+              })}
+            </View>
+          )}
+        </View>
+
         {/* Domain Skills */}
         <View style={styles.skillsCard}>
           <Text style={styles.sectionTitle}>Compétences par Domaine</Text>
-          {DOMAINS.map((domain) => (
-            <View key={domain.id} style={styles.skillRow}>
-              <Text style={styles.skillEmoji}>{domain.emoji}</Text>
-              <View style={styles.skillInfo}>
-                <View style={styles.skillHeader}>
-                  <Text style={styles.skillName}>{domain.name}</Text>
-                  <Text style={styles.skillLevel}>Niv. {domain.level}</Text>
+          {domainSkills.map((skill) => {
+            const domainInfo = DOMAIN_INFO[skill.domain];
+            const xpAtCurrentLevel = xpForLevel(skill.level);
+            const xpAtNextLevel = xpForLevel(skill.level + 1);
+            const currentXp = skill.xp - xpAtCurrentLevel;
+            const requiredXp = xpAtNextLevel - xpAtCurrentLevel;
+            const progress = (currentXp / requiredXp) * 100;
+
+            return (
+              <View key={skill.id} style={styles.skillRow}>
+                <Text style={styles.skillEmoji}>{domainInfo.emoji}</Text>
+                <View style={styles.skillInfo}>
+                  <View style={styles.skillHeader}>
+                    <Text style={styles.skillName}>{domainInfo.name}</Text>
+                    <Text style={styles.skillLevel}>Niv. {skill.level}</Text>
+                  </View>
+                  <View style={styles.progressBarBg}>
+                    <View
+                      style={[
+                        styles.progressBarFill,
+                        { width: `${progress}%`, backgroundColor: domainInfo.color },
+                      ]}
+                    />
+                  </View>
+                  <Text style={styles.xpText}>
+                    {currentXp} / {requiredXp} XP
+                  </Text>
                 </View>
-                <View style={styles.progressBarBg}>
-                  <View
-                    style={[
-                      styles.progressBarFill,
-                      { width: `${(domain.xp / domain.maxXp) * 100}%` },
-                    ]}
-                  />
-                </View>
-                <Text style={styles.xpText}>
-                  {domain.xp} / {domain.maxXp} XP
-                </Text>
               </View>
-            </View>
-          ))}
+            );
+          })}
         </View>
       </ScrollView>
+
+      {/* Equipment Modal */}
+      {selectedSlot && character && user && (
+        <EquipmentModal
+          visible={!!selectedSlot}
+          slot={selectedSlot}
+          currentEquipment={currentEquippedItem}
+          characterId={character.id}
+          userId={user.id}
+          onClose={() => setSelectedSlot(null)}
+          onEquip={handleEquipItem}
+          onUnequip={handleUnequipItem}
+        />
+      )}
     </SafeAreaView>
   );
 }
@@ -79,6 +248,21 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 20,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#6b7280',
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#dc2626',
   },
   avatarContainer: {
     alignItems: 'center',
@@ -140,6 +324,80 @@ const styles = StyleSheet.create({
     color: '#6b7280',
     marginTop: 4,
   },
+  // Equipment styles
+  equipmentCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  equipmentGrid: {
+    gap: 12,
+  },
+  equipmentSlot: {
+    backgroundColor: '#f9fafb',
+    borderRadius: 8,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  slotHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  slotEmoji: {
+    fontSize: 20,
+    marginRight: 8,
+  },
+  slotName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1f2937',
+  },
+  equippedItemInfo: {
+    marginBottom: 8,
+  },
+  equippedItemName: {
+    fontSize: 14,
+    color: '#1f2937',
+    marginBottom: 4,
+  },
+  emptySlot: {
+    fontSize: 13,
+    color: '#9ca3af',
+    marginBottom: 8,
+  },
+  rarityBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  rarityText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#ffffff',
+    textTransform: 'uppercase',
+  },
+  manageButton: {
+    backgroundColor: '#6366f1',
+    borderRadius: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+  },
+  manageButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#ffffff',
+  },
+  // Skills styles
   skillsCard: {
     backgroundColor: '#ffffff',
     borderRadius: 12,
