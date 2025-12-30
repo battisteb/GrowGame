@@ -515,6 +515,62 @@ xpForLevel(n) = (100 * n²) / 2
 
 ---
 
+### [2025-12-30] [0011] Humeur du Personnage
+
+**Commit**: `53a69d0` | **PR**: #9
+
+**Actions**:
+- Implémentation du système d'humeur dynamique basé sur l'activité
+- Ajout du mood 'sad' au type Mood
+- Mise à jour automatique après complétion ou au chargement
+
+**Fichiers créés**:
+- `apps/mobile/src/utils/moodCalculator.ts`
+
+**Fichiers modifiés**:
+- `apps/mobile/src/types/index.ts` (ajout 'sad' au type Mood)
+- `apps/mobile/src/constants/game.ts` (ajout emoji sad 😢)
+- `apps/mobile/src/services/character.service.ts` (`updateMood`)
+- `apps/mobile/src/services/habitLogs.service.ts` (appel updateMood)
+- `apps/mobile/src/stores/characterStore.ts` (intégration updateMood)
+- `apps/mobile/app/(tabs)/home.tsx` (affichage mood card)
+
+**Logique de Mood**:
+```typescript
+// Règles (par priorité):
+1. Sad 😢: 3+ jours sans activité (priorité la plus haute)
+2. Tired 😴: 2 jours sans activité
+3. Happy 😊: streak >= 7 jours ET actif dans les dernières 24h
+4. Neutral 😐: défaut
+
+// Exemples:
+- Streak de 10 jours + actif aujourd'hui → Happy 😊
+- Streak de 5 jours + actif aujourd'hui → Neutral 😐
+- Dernière activité il y a 2 jours → Tired 😴
+- Dernière activité il y a 5 jours → Sad 😢
+```
+
+**Flow de Mood Update**:
+```
+1. Après complétion d'habitude (habitLogs.service):
+   - completeHabit() → updateStreak() → updateMood() → nouveau mood calculé
+
+2. Au chargement du character (characterStore):
+   - loadCharacter() → applyDecay() → updateMood() → reload character pour mood
+
+3. Calcul du mood (moodCalculator):
+   - Analyse current_streak et last_activity_date
+   - Retourne {mood, reason}
+   - updateMood() met à jour en DB si changement
+```
+
+**Affichage**:
+- Nouvelle carte "Mood" sur home.tsx
+- Affiche emoji 48px + description
+- Messages contextuels selon le mood
+
+---
+
 ## Architecture Évolutive
 
 ### Services
@@ -535,15 +591,16 @@ Logique métier pure (sans dépendances):
 - `xpCalculator.ts` - Formules XP → Level
 - `streakCalculator.ts` - Logique de streak
 - `decayCalculator.ts` - Logique de decay
+- `moodCalculator.ts` - Calcul de l'humeur
 
 ---
 
 ## Prochaines Étapes
 
-### [0011] Humeur du Personnage
-- Calcul de l'humeur basé sur l'activité
-- Happy, Neutral, Tired, Sad
-- Affichage visuel (emoji)
+### [0012] Journal Quotidien
+- Saisie optionnelle après complétion d'habitude
+- Bonus de +5 XP si rempli
+- Historique des entrées
 
 ### [0013] Shop Basique
 - Items cosmétiques
@@ -552,4 +609,4 @@ Logique métier pure (sans dépendances):
 
 ---
 
-**Fin du TRACE - Dernière mise à jour: 2025-12-27**
+**Fin du TRACE - Dernière mise à jour: 2025-12-30**
