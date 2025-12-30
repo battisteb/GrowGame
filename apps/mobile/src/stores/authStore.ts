@@ -19,6 +19,9 @@ import {
   onAuthStateChange,
 } from '../services/auth.service';
 import { createCharacter } from '../services/character.service';
+import { useCharacterStore } from './characterStore';
+import { useHabitsStore } from './habitsStore';
+import { useShopStore } from './shopStore';
 
 interface AuthState {
   // State
@@ -195,6 +198,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({ isLoading: true });
 
       await signOut();
+
+      // Clear all stores on logout
+      useCharacterStore.getState().clearCharacter();
+      useHabitsStore.getState().clearHabits();
+      useShopStore.getState().clearShop();
 
       set({
         user: null,
