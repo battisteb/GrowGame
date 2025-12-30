@@ -11,7 +11,7 @@
 import { supabase } from './supabase';
 import type { HabitLog, Habit } from '../types';
 import { XP_REWARDS, COIN_REWARDS } from '../constants/game';
-import { updateStreak } from './character.service';
+import { updateStreak, updateMood } from './character.service';
 
 // =============================================================================
 // GET HABIT LOGS
@@ -231,6 +231,9 @@ export const completeHabit = async (
     if (streakResult.success && streakResult.bonusCoins && streakResult.bonusCoins > 0) {
       bonusMessage = ` | 🔥 Streak bonus: +${streakResult.bonusCoins} coins!`;
     }
+
+    // Step 8: Update character mood based on new streak/activity
+    await updateMood(characterId);
 
     console.log(
       `✅ Habit completed: ${habit.name} (+${xpEarned} XP, +${coinsEarned} coins${bonusMessage})`
