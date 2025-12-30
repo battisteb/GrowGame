@@ -323,26 +323,37 @@ Phase 5 : Polish & Amélioration           ⏳ À VENIR
 
 ---
 
-### [0011] - Humeur du personnage
+### [0011] - Humeur du personnage ✅
 
 **Responsable** : Dev A
 
+**Status** : TERMINÉ (commit: 53a69d0, PR #9)
+
 **Tâches** :
-- [ ] Logique de calcul de l'humeur :
-  - [ ] Happy : streak > 7 jours
-  - [ ] Neutral : activité régulière
-  - [ ] Tired : 2 jours consécutifs sans activité
-  - [ ] Sad : 3+ jours consécutifs sans activité
-- [ ] Afficher l'emoji de l'humeur
-- [ ] (Optionnel) Modifier l'apparence du personnage
+- [x] Ajouter 'sad' mood type et emoji 😢
+- [x] Créer `moodCalculator.ts` avec logique de calcul
+  - [x] Sad : 3+ jours sans activité
+  - [x] Tired : 2 jours sans activité
+  - [x] Happy : streak >= 7 jours ET actif récemment
+  - [x] Neutral : défaut
+- [x] Créer `updateMood()` dans character.service
+- [x] Intégrer update mood après complétion d'habitude
+- [x] Intégrer update mood au chargement du character
+- [x] Afficher carte mood dans home.tsx avec emoji et description
 
 **Fichiers clés** :
-- `src/utils/moodCalculator.ts`
-- `app/(tabs)/character.tsx`
+- `apps/mobile/src/utils/moodCalculator.ts`
+- `apps/mobile/src/services/character.service.ts`
+- `apps/mobile/src/services/habitLogs.service.ts`
+- `apps/mobile/src/stores/characterStore.ts`
+- `apps/mobile/app/(tabs)/home.tsx`
+- `apps/mobile/src/types/index.ts`
+- `apps/mobile/src/constants/game.ts`
 
 **Critères de "done"** :
-- L'humeur change selon l'activité
-- Visuellement représenté (emoji minimum)
+- ✅ L'humeur change selon l'activité
+- ✅ Visuellement représenté avec emoji et message
+- ✅ Update automatique après actions utilisateur
 
 ---
 
@@ -603,7 +614,8 @@ Implémenter un système de decay pour les compétences non pratiquées, encoura
 | 0008 | Complétion Habitudes | 2025-12-25 | Claude | 5323d8e | #6 |
 | 0009 | Système de streak | 2025-12-27 | Claude | 70a3335 | #7 |
 | 0010 | Système de decay + Fix XP | 2025-12-27 | Claude | 8d08a30 | #8 |
+| 0011 | Humeur du personnage | 2025-12-30 | Claude | 53a69d0 | #9 |
 
 ---
 
-**Prochaine révision** : Après [0011] (humeur du personnage)
+**Prochaine révision** : Après [0012] (journal quotidien)

@@ -18,6 +18,7 @@ import { useCharacterStore } from '../../src/stores/characterStore';
 import { useHabitsStore } from '../../src/stores/habitsStore';
 import { HabitCard } from '../../src/components/HabitCard';
 import { HabitForm } from '../../src/components/HabitForm';
+import { JournalPromptModal } from '../../src/components/JournalPromptModal';
 import { showConfirmAlert } from '../../src/utils/alert';
 import type { Domain, Difficulty, Habit } from '../../src/types';
 
@@ -33,6 +34,9 @@ export default function HabitsScreen() {
     editHabit,
     removeHabit,
     toggleHabitCompletion,
+    journalPromptVisible,
+    journalPromptData,
+    hideJournalPrompt,
   } = useHabitsStore();
 
   const [isFormVisible, setIsFormVisible] = useState(false);
@@ -209,6 +213,21 @@ export default function HabitsScreen() {
         onSubmit={editingHabit ? handleEditHabit : handleAddHabit}
         initialData={editingHabit}
       />
+
+      {/* Journal Prompt Modal */}
+      {journalPromptData && (
+        <JournalPromptModal
+          visible={journalPromptVisible}
+          characterId={journalPromptData.characterId}
+          habitLogId={journalPromptData.habitLogId}
+          habitName={journalPromptData.habitName}
+          onClose={hideJournalPrompt}
+          onSuccess={(xpEarned) => {
+            console.log(`📝 Journal entry created! +${xpEarned} XP`);
+            refreshCharacter();
+          }}
+        />
+      )}
     </SafeAreaView>
   );
 }

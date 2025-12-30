@@ -79,6 +79,21 @@ export interface HabitLog {
 }
 
 // =============================================================================
+// JOURNAL
+// =============================================================================
+
+export interface JournalEntry {
+  id: string;
+  character_id: string;
+  habit_log_id: string | null;
+  entry_text: string;
+  mood: Mood | null;
+  xp_earned: number;
+  created_at: string;
+  updated_at: string;
+}
+
+// =============================================================================
 // BOUTIQUE
 // =============================================================================
 
