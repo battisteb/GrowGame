@@ -7,6 +7,8 @@ import { useCharacterStore } from '../../src/stores/characterStore';
 import { showAlert, showConfirmAlert } from '../../src/utils/alert';
 import { XPProgressBar } from '../../src/components/XPProgressBar';
 import { DomainSkillCard } from '../../src/components/DomainSkillCard';
+import { MOOD_EMOJIS } from '../../src/constants/game';
+import { getMoodDescription } from '../../src/utils/moodCalculator';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -69,6 +71,12 @@ export default function HomeScreen() {
         <View style={styles.header}>
           <Text style={styles.title}>GrowGame</Text>
           <Text style={styles.subtitle}>Bienvenue, {userName} !</Text>
+        </View>
+
+        {/* Character Mood */}
+        <View style={styles.moodCard}>
+          <Text style={styles.moodEmoji}>{MOOD_EMOJIS[character.mood]}</Text>
+          <Text style={styles.moodText}>{getMoodDescription(character.mood)}</Text>
         </View>
 
         {/* Character Stats */}
@@ -169,6 +177,27 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 18,
     color: '#6b7280',
+  },
+  moodCard: {
+    backgroundColor: '#ffffff',
+    padding: 20,
+    borderRadius: 12,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    alignItems: 'center',
+  },
+  moodEmoji: {
+    fontSize: 48,
+    marginBottom: 8,
+  },
+  moodText: {
+    fontSize: 14,
+    color: '#6b7280',
+    textAlign: 'center',
   },
   statsCard: {
     backgroundColor: '#ffffff',
