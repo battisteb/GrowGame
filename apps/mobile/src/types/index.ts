@@ -29,6 +29,8 @@ export interface Character {
   name: string;
   global_level: number;
   global_xp: number;
+  ranked_level: number;
+  ranked_xp: number;
   coins: number;
   gems: number;
   mood: Mood;
@@ -67,12 +69,15 @@ export interface Habit {
   updated_at: string;
 }
 
+export type CompletionMode = 'normal' | 'ranked';
+
 export interface HabitLog {
   id: string;
   habit_id: string;
   completed_at: string;
   photo_url: string | null;
   verified: boolean;
+  completion_mode: CompletionMode;
   xp_earned: number;
   coins_earned: number;
   created_at: string;

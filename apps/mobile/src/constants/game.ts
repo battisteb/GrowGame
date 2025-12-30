@@ -83,12 +83,22 @@ export const xpProgress = (
 // =============================================================================
 
 /**
- * XP gagné par difficulté d'habitude
+ * XP gagné par difficulté d'habitude (mode normal)
  */
 export const XP_REWARDS: Record<Difficulty, number> = {
   1: 10,
   2: 20,
   3: 30,
+};
+
+/**
+ * Ranked XP gagné par difficulté d'habitude (mode ranked)
+ * Multiplicateur 1.5x pour incentiviser ranked mode
+ */
+export const RANKED_XP_REWARDS: Record<Difficulty, number> = {
+  1: 15,  // Base 10 × 1.5
+  2: 30,  // Base 20 × 1.5
+  3: 45,  // Base 30 × 1.5
 };
 
 /**
@@ -104,6 +114,12 @@ export const COIN_REWARDS: Record<Difficulty, number> = {
  * XP bonus pour le journal quotidien
  */
 export const JOURNAL_XP_REWARD = 5;
+
+/**
+ * Seuil de confiance minimum pour la vérification photo (0-1)
+ * Les photos avec labels ayant un score >= 0.6 sont considérées valides
+ */
+export const PHOTO_VERIFICATION_MIN_CONFIDENCE = 0.6;
 
 /**
  * Pièces bonus pour un streak de 7 jours
