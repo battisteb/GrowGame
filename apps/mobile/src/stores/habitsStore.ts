@@ -30,6 +30,12 @@ interface HabitsState {
   todayLogs: Map<string, HabitLog>; // habitId -> log
   isLoading: boolean;
   error: string | null;
+  journalPromptVisible: boolean;
+  journalPromptData: {
+    habitLogId: string;
+    habitName: string;
+    characterId: string;
+  } | null;
 
   // Actions
   loadHabits: (characterId: string) => Promise<void>;
@@ -38,6 +44,8 @@ interface HabitsState {
   editHabit: (habitId: string, data: UpdateHabitData) => Promise<boolean>;
   removeHabit: (habitId: string) => Promise<boolean>;
   toggleHabitCompletion: (habit: Habit, characterId: string) => Promise<boolean>;
+  showJournalPrompt: (habitLogId: string, habitName: string, characterId: string) => void;
+  hideJournalPrompt: () => void;
   clearHabits: () => void;
   clearError: () => void;
 }
@@ -48,6 +56,8 @@ export const useHabitsStore = create<HabitsState>((set, get) => ({
   todayLogs: new Map(),
   isLoading: false,
   error: null,
+  journalPromptVisible: false,
+  journalPromptData: null,
 
   /**
    * Load all habits for a character
@@ -249,6 +259,12 @@ export const useHabitsStore = create<HabitsState>((set, get) => ({
         console.log('✅ Habit completed, refreshing logs...');
         // Reload today's logs from database to ensure sync
         await loadTodayLogs(characterId);
+
+        // Show journal prompt modal (optional)
+        if (result.log?.id) {
+          const { showJournalPrompt } = get();
+          showJournalPrompt(result.log.id, habit.name, characterId);
+        }
       }
 
       return true;
@@ -276,5 +292,25 @@ export const useHabitsStore = create<HabitsState>((set, get) => ({
    */
   clearError: () => {
     set({ error: null });
+  },
+
+  /**
+   * Show journal prompt modal after habit completion
+   */
+  showJournalPrompt: (habitLogId: string, habitName: string, characterId: string) => {
+    set({
+      journalPromptVisible: true,
+      journalPromptData: { habitLogId, habitName, characterId },
+    });
+  },
+
+  /**
+   * Hide journal prompt modal
+   */
+  hideJournalPrompt: () => {
+    set({
+      journalPromptVisible: false,
+      journalPromptData: null,
+    });
   },
 }));
