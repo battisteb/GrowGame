@@ -357,23 +357,35 @@ Phase 5 : Polish & Amélioration           ⏳ À VENIR
 
 ---
 
-### [0012] - Journal quotidien
+### [0012] - Journal quotidien ✅
 
 **Responsable** : Dev B
 
+**Status** : TERMINÉ (commit: 3051083, PR #10)
+
 **Tâches** :
-- [ ] Créer une table `journal_entries`
-- [ ] Modal de saisie du journal après validation d'habitude
-- [ ] +5 XP pour complétion du journal
-- [ ] Optionnel mais encouragé
+- [x] Créer migration `004_journal_entries.sql` avec table et RLS
+- [x] Créer type `JournalEntry` dans types
+- [x] Créer `journal.service.ts` avec CRUD operations
+- [x] Créer `JournalPromptModal` component (optionnel avec skip)
+- [x] Intégrer modal dans habits store et screen
+- [x] Award +5 XP bonus pour entrée de journal
 
 **Fichiers clés** :
-- `supabase/migrations/002_journal.sql`
-- `src/features/journal/components/JournalModal.tsx`
+- `supabase/migrations/004_journal_entries.sql`
+- `apps/mobile/src/services/journal.service.ts`
+- `apps/mobile/src/components/JournalPromptModal.tsx`
+- `apps/mobile/src/stores/habitsStore.ts`
+- `apps/mobile/app/(tabs)/habits.tsx`
+- `apps/mobile/src/types/index.ts`
 
 **Critères de "done"** :
-- L'utilisateur peut écrire un journal
-- +5 XP bonus si journal rempli
+- ✅ L'utilisateur peut écrire un journal après complétion d'habitude
+- ✅ +5 XP bonus si journal rempli
+- ✅ Peut skip sans pénalité
+- ✅ Journal entries stockées avec habit_log link
+
+**Future enhancement** : Vue historique du journal dans character screen
 
 ---
 
@@ -615,7 +627,8 @@ Implémenter un système de decay pour les compétences non pratiquées, encoura
 | 0009 | Système de streak | 2025-12-27 | Claude | 70a3335 | #7 |
 | 0010 | Système de decay + Fix XP | 2025-12-27 | Claude | 8d08a30 | #8 |
 | 0011 | Humeur du personnage | 2025-12-30 | Claude | 53a69d0 | #9 |
+| 0012 | Journal quotidien | 2025-12-30 | Claude | 3051083 | #10 |
 
 ---
 
-**Prochaine révision** : Après [0012] (journal quotidien)
+**Prochaine révision** : Après [0013] (shop basique)
