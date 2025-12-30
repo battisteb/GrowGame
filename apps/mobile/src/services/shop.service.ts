@@ -11,6 +11,36 @@ import { supabase } from './supabase';
 import type { ShopItem, UserItem } from '../types';
 
 // =============================================================================
+// HELPERS
+// =============================================================================
+
+/**
+ * Transform database shop item (snake_case) to TypeScript type (camelCase)
+ */
+const transformShopItem = (dbItem: any): ShopItem => ({
+  id: dbItem.id,
+  name: dbItem.name,
+  description: dbItem.description,
+  type: dbItem.type,
+  slot: dbItem.slot,
+  priceCoins: dbItem.price_coins,
+  priceGems: dbItem.price_gems,
+  rarity: dbItem.rarity,
+  imageUrl: dbItem.image_url,
+  unlockCondition: dbItem.unlock_condition,
+});
+
+/**
+ * Transform database user item (snake_case) to TypeScript type (camelCase)
+ */
+const transformUserItem = (dbItem: any): UserItem => ({
+  id: dbItem.id,
+  userId: dbItem.user_id,
+  itemId: dbItem.item_id,
+  acquiredAt: dbItem.acquired_at,
+});
+
+// =============================================================================
 // GET SHOP ITEMS
 // =============================================================================
 
@@ -37,7 +67,10 @@ export const getShopItems = async (): Promise<{
       return { success: false, error: error.message };
     }
 
-    return { success: true, items: data || [] };
+    // Transform database results to TypeScript types
+    const items = (data || []).map(transformShopItem);
+
+    return { success: true, items };
   } catch (error) {
     console.error('❌ Exception in getShopItems:', error);
     return { success: false, error: String(error) };
@@ -71,7 +104,10 @@ export const getShopItemsByType = async (
       return { success: false, error: error.message };
     }
 
-    return { success: true, items: data || [] };
+    // Transform database results to TypeScript types
+    const items = (data || []).map(transformShopItem);
+
+    return { success: true, items };
   } catch (error) {
     console.error('❌ Exception in getShopItemsByType:', error);
     return { success: false, error: String(error) };
@@ -108,7 +144,13 @@ export const getUserItems = async (userId: string): Promise<{
       return { success: false, error: error.message };
     }
 
-    return { success: true, items: data || [] };
+    // Transform database results to TypeScript types
+    const items = (data || []).map((dbItem: any) => ({
+      ...transformUserItem(dbItem),
+      shop_item: transformShopItem(dbItem.shop_item),
+    }));
+
+    return { success: true, items };
   } catch (error) {
     console.error('❌ Exception in getUserItems:', error);
     return { success: false, error: String(error) };
@@ -180,17 +222,20 @@ export const purchaseItem = async ({
     console.log('🛒 Purchasing item:', { userId, itemId, characterId });
 
     // 1. Get item details and price
-    const { data: shopItem, error: itemError } = await supabase
+    const { data: dbShopItem, error: itemError } = await supabase
       .from('shop_items')
       .select('*')
       .eq('id', itemId)
       .eq('is_available', true)
       .single();
 
-    if (itemError || !shopItem) {
+    if (itemError || !dbShopItem) {
       console.error('❌ Item not found or not available:', itemError);
       return { success: false, error: 'Item not found or not available' };
     }
+
+    // Transform to TypeScript type
+    const shopItem = transformShopItem(dbShopItem);
 
     // 2. Check if user already owns the item
     const ownsCheck = await userOwnsItem(userId, itemId);
@@ -215,7 +260,7 @@ export const purchaseItem = async ({
     }
 
     // 4. Check if user has enough coins
-    const price = shopItem.price_coins;
+    const price = shopItem.priceCoins;
     if (character.coins < price) {
       return {
         success: false,
