@@ -571,6 +571,75 @@ xpForLevel(n) = (100 * n²) / 2
 
 ---
 
+### [2025-12-30] [0012] Journal Quotidien
+
+**Commit**: `3051083` | **PR**: #10
+
+**Actions**:
+- Implémentation du système de journal quotidien optionnel
+- Modal affiché après complétion d'habitude
+- Bonus de +5 XP pour écriture de journal
+- Stockage des entrées liées aux habit_logs
+
+**Fichiers créés**:
+- `supabase/migrations/004_journal_entries.sql`
+- `apps/mobile/src/services/journal.service.ts`
+- `apps/mobile/src/components/JournalPromptModal.tsx`
+
+**Fichiers modifiés**:
+- `apps/mobile/src/types/index.ts` (ajout type JournalEntry)
+- `apps/mobile/src/stores/habitsStore.ts` (état modal)
+- `apps/mobile/app/(tabs)/habits.tsx` (intégration modal)
+
+**Schéma Database**:
+```sql
+CREATE TABLE journal_entries (
+  id UUID PRIMARY KEY,
+  character_id UUID REFERENCES characters(id),
+  habit_log_id UUID REFERENCES habit_logs(id), -- Optionnel
+  entry_text TEXT NOT NULL CHECK (char_length(entry_text) <= 1000),
+  mood TEXT CHECK (mood IN ('happy', 'neutral', 'tired', 'sad')),
+  xp_earned INTEGER DEFAULT 5,
+  created_at TIMESTAMPTZ,
+  updated_at TIMESTAMPTZ
+);
+
+-- RLS policies: users can only access their own journal entries
+-- Update/Delete allowed within 24h only
+```
+
+**Logique de Journal**:
+```typescript
+// Flow après complétion d'habitude:
+1. Habit complété → XP/coins attribués
+2. JournalPromptModal affiché
+3. User peut:
+   - Écrire une entrée (max 1000 chars) → +5 XP bonus
+   - Skip sans pénalité
+
+// Services disponibles:
+- createJournalEntry(characterId, entryText, habitLogId, mood)
+- getJournalEntries(characterId, limit=30)
+- getTodayJournalEntries(characterId)
+
+// Bonus XP:
+- JOURNAL_XP_REWARD = 5 XP
+- Attribué via add_character_rewards RPC
+```
+
+**Fonctionnalités**:
+- Modal optionnel avec TextInput multiline
+- Compteur de caractères (0/1000)
+- Boutons "Passer" et "Enregistrer"
+- Optional mood capture (non utilisé dans modal actuel)
+- Link vers habit_log qui a déclenché l'entrée
+- RLS policies: modification possible dans les 24h seulement
+
+**Future Enhancement**:
+Vue historique du journal dans character screen avec affichage des entrées, habitudes associées et dates.
+
+---
+
 ## Architecture Évolutive
 
 ### Services
@@ -597,15 +666,16 @@ Logique métier pure (sans dépendances):
 
 ## Prochaines Étapes
 
-### [0012] Journal Quotidien
-- Saisie optionnelle après complétion d'habitude
-- Bonus de +5 XP si rempli
-- Historique des entrées
-
 ### [0013] Shop Basique
 - Items cosmétiques
 - Achat avec coins
 - Inventaire
+
+### [0014+] À venir
+- Système de quêtes
+- Écran character avec équipements
+- Historique du journal dans character screen
+- Photos pour validation d'habitudes
 
 ---
 
