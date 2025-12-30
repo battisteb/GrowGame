@@ -15,6 +15,7 @@ import {
   getDecaySummaryMessage,
   type DecayResult,
 } from '../utils/decayCalculator';
+import { calculateMood } from '../utils/moodCalculator';
 
 /**
  * The 5 core domains for skill tracking
@@ -389,5 +390,90 @@ export const applyDecayToAllDomains = async (
       decayApplied: false,
       error: String(error),
     };
+  }
+};
+
+/**
+ * Update character mood based on activity
+ * Should be called after habit completion or on character load
+ *
+ * Mood logic:
+ * - Sad: 3+ days without activity
+ * - Tired: 2 days without activity
+ * - Happy: streak >= 7 days and recently active
+ * - Neutral: default
+ *
+ * @param characterId - The character ID to update
+ * @returns Success status and new mood
+ */
+export const updateMood = async (
+  characterId: string
+): Promise<{
+  success: boolean;
+  mood?: string;
+  reason?: string;
+  error?: string;
+}> => {
+  try {
+    console.log('🎭 Updating mood for character:', characterId);
+
+    // Get current character data
+    const { data: character, error: fetchError } = await supabase
+      .from('characters')
+      .select('current_streak, last_activity_date, mood')
+      .eq('id', characterId)
+      .single();
+
+    if (fetchError || !character) {
+      console.error('❌ Error fetching character for mood:', fetchError);
+      return { success: false, error: fetchError?.message || 'Character not found' };
+    }
+
+    // Calculate new mood
+    const moodResult = calculateMood({
+      currentStreak: character.current_streak,
+      lastActivityDate: character.last_activity_date,
+    });
+
+    console.log('📊 Mood calculation:', {
+      previous: character.mood,
+      new: moodResult.mood,
+      reason: moodResult.reason,
+    });
+
+    // Only update if mood changed
+    if (moodResult.mood === character.mood) {
+      console.log('✅ Mood unchanged, skipping update');
+      return {
+        success: true,
+        mood: moodResult.mood,
+        reason: moodResult.reason,
+      };
+    }
+
+    // Update character mood
+    const { error: updateError } = await supabase
+      .from('characters')
+      .update({
+        mood: moodResult.mood,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', characterId);
+
+    if (updateError) {
+      console.error('❌ Error updating mood:', updateError);
+      return { success: false, error: updateError.message };
+    }
+
+    console.log(`✅ Mood updated: ${character.mood} → ${moodResult.mood} (${moodResult.reason})`);
+
+    return {
+      success: true,
+      mood: moodResult.mood,
+      reason: moodResult.reason,
+    };
+  } catch (error) {
+    console.error('❌ Update mood exception:', error);
+    return { success: false, error: String(error) };
   }
 };

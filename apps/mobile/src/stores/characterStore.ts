@@ -13,6 +13,7 @@ import {
   getCharacterByUserId,
   getDomainSkills,
   applyDecayToAllDomains,
+  updateMood,
 } from '../services/character.service';
 
 interface CharacterState {
@@ -72,13 +73,22 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
       // Check and apply skill decay
       const decayResult = await applyDecayToAllDomains(characterResult.character.id);
 
+      // Update character mood based on current activity
+      await updateMood(characterResult.character.id);
+
+      // Reload character to get updated mood
+      const updatedCharacterResult = await getCharacterByUserId(userId);
+      const finalCharacter = updatedCharacterResult.success && updatedCharacterResult.character
+        ? updatedCharacterResult.character
+        : characterResult.character;
+
       // If decay was applied, reload the skills to get updated values
       if (decayResult.success && decayResult.decayApplied) {
         console.log('📉 Skill decay applied, reloading skills...');
         const refreshedSkillsResult = await getDomainSkills(characterResult.character.id);
 
         set({
-          character: characterResult.character,
+          character: finalCharacter,
           domainSkills: refreshedSkillsResult.skills || [],
           isLoading: false,
           error: null,
@@ -86,7 +96,7 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
         });
       } else {
         set({
-          character: characterResult.character,
+          character: finalCharacter,
           domainSkills: skillsResult.skills || [],
           isLoading: false,
           error: null,
