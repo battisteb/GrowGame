@@ -429,24 +429,48 @@ Phase 5 : Polish & Amélioration           ⏳ À VENIR
 
 ---
 
-### [0014] - Équipement du personnage
+### [0014] - Équipement du personnage ✅
 
 **Responsable** : Dev A
 
+**Status** : TERMINÉ (commits: dc52a72, 9f43d8b)
+
 **Tâches** :
-- [ ] Créer `src/services/equipment.service.ts`
-  - [ ] `equipItem(characterId, slot, itemId)`
-  - [ ] `getEquippedItems(characterId)`
-- [ ] Interface pour équiper les items (onglet Character)
-- [ ] Afficher visuellement les items équipés (emojis pour MVP)
+- [x] Créer `src/services/equipment.service.ts`
+  - [x] `getEquippedItems()` - Fetch equipped items avec JOIN shop_items
+  - [x] `equipItem()` - Équiper avec validation ownership
+  - [x] `unequipItem()` - Retirer item d'un slot
+  - [x] `getAvailableItemsForSlot()` - Items possédés par slot
+  - [x] Transformations snake_case → camelCase
+- [x] Mise à jour `characterStore.ts` avec equipment state
+  - [x] State: `equipment`, `isLoadingEquipment`
+  - [x] Actions: `loadEquipment()`, `equipItem()`, `unequipItem()`
+- [x] Créer `EquipmentModal.tsx` pour gestion par slot
+  - [x] Liste items disponibles avec rarity badges
+  - [x] Boutons équiper/déséquiper
+  - [x] État vide si aucun item
+- [x] Refondre `character.tsx` avec données réelles
+  - [x] Section Équipement avec 5 slots
+  - [x] Affichage items équipés avec rareté
+  - [x] Bouton "Gérer" par slot
+- [x] Intégration shop: bouton "⚡ Équiper" pour cosmétiques possédés
 
 **Fichiers clés** :
-- `src/services/equipment.service.ts`
-- `app/(tabs)/character.tsx`
+- `src/services/equipment.service.ts` (NOUVEAU)
+- `src/components/EquipmentModal.tsx` (NOUVEAU)
+- `src/stores/characterStore.ts` (MODIFIÉ)
+- `app/(tabs)/character.tsx` (REFONTE COMPLÈTE)
+- `app/(tabs)/shop.tsx` (MODIFIÉ)
 
 **Critères de "done"** :
-- L'utilisateur peut équiper/déséquiper des items
-- Les items équipés sont visibles
+- ✅ User peut équiper/déséquiper des items
+- ✅ Items équipés visibles sur character screen
+- ✅ Un seul item par slot à la fois
+- ✅ Validation ownership avant équipement
+- ✅ Items non-cosmétiques ne peuvent pas être équipés
+- ✅ UX fluide avec équipement direct depuis shop
+- ✅ TypeScript compile sans erreurs
+- ✅ Tous les tests manuels passent
 
 ---
 
@@ -640,7 +664,8 @@ Implémenter un système de decay pour les compétences non pratiquées, encoura
 | 0011 | Humeur du personnage | 2025-12-30 | Claude | 53a69d0 | #9 |
 | 0012 | Journal quotidien | 2025-12-30 | Claude | 3051083 | #10 |
 | 0013 | Shop basique | 2025-12-30 | Claude | cd0b5f9 | #11 |
+| 0014 | Équipement du personnage | 2025-12-30 | Claude | dc52a72 | TBD |
 
 ---
 
-**Prochaine révision** : Après [0014] (équipement du personnage)
+**Prochaine révision** : Après [0015] (vérification photo AI)
