@@ -640,6 +640,115 @@ Vue historique du journal dans character screen avec affichage des entrées, hab
 
 ---
 
+### [2025-12-30] [0013] Shop Basique
+
+**Commit**: `cd0b5f9` | **PR**: #11
+
+**Actions**:
+- Implémentation du système de boutique
+- Catalogue d'items avec cosmétiques, décorations et jokers
+- Système d'achat avec validation de coins
+- Gestion de l'inventaire utilisateur
+
+**Fichiers créés**:
+- `supabase/migrations/005_populate_shop_items.sql`
+- `apps/mobile/src/services/shop.service.ts`
+- `apps/mobile/src/stores/shopStore.ts`
+
+**Fichiers modifiés**:
+- `apps/mobile/app/(tabs)/shop.tsx` (refonte complète)
+- `apps/mobile/src/stores/authStore.ts` (clear shop on logout)
+
+**Migration 005 - Shop Items**:
+Ajout de 34 items variés :
+- **Cosmétiques** (25 items) : 5 slots (couvre_chef, haut, bas, chaussures, accessoire)
+  - Rareté variée : Common (50-120 coins), Rare (150-300), Epic (350-500), Legendary (800-1200)
+- **Décorations** (6 items) : Trophées, plantes, affiches, statues
+- **Jokers** (3 items) : Protection streak, double XP
+
+**Services créés**:
+```typescript
+// shop.service.ts
+- getShopItems(): Fetch tous les items disponibles
+- getShopItemsByType(type): Filtrer par cosmetic/decoration/joker
+- getUserItems(userId): Inventaire avec détails des items
+- userOwnsItem(userId, itemId): Check ownership
+- purchaseItem({userId, itemId, characterId}): Achat avec validation
+
+// Helpers de transformation
+- transformShopItem(): snake_case DB → camelCase TypeScript
+- transformUserItem(): Conversion pour inventaire
+```
+
+**Store Zustand**:
+```typescript
+// shopStore.ts
+- State: shopItems, userItems, isLoading, isPurchasing, error
+- loadShopItems(): Charge le catalogue
+- loadUserItems(userId): Charge l'inventaire
+- buyItem(): Effectue un achat avec refresh auto
+- userOwnsItem(itemId): Check local ownership
+- clearShop(): Nettoyage sur logout
+```
+
+**Interface Utilisateur**:
+```typescript
+// shop.tsx
+- Header avec balance de coins en temps réel
+- Filter tabs: All, Cosmétiques, Décorations, Jokers
+- Grid 2 colonnes avec item cards:
+  * Rarity badge (couleur selon rareté)
+  * Nom, description, slot
+  * Prix en coins
+  * Boutons contextuels:
+    - "Acheter" si peut se permettre
+    - "Trop cher" si pas assez de coins
+    - "✓ Possédé" si déjà acheté
+- Confirmation d'achat avec dialog
+- Loading overlay pendant achat
+- Refresh auto des coins après achat
+```
+
+**Flow d'achat**:
+```
+1. User clique "Acheter" sur un item
+2. Validation client:
+   - Check si déjà possédé → Alert "Déjà possédé"
+   - Check coins suffisants → Alert "Pas assez"
+3. Confirmation dialog
+4. purchaseItem() côté serveur:
+   - Fetch item details
+   - Re-check ownership en DB
+   - Fetch character coins
+   - Validate coins >= price
+   - Deduct coins (atomic update)
+   - Add to user_items
+   - Rollback si erreur
+5. Reload inventory
+6. Refresh character pour update coins display
+7. Alert "Achat réussi"
+```
+
+**Problèmes Résolus**:
+
+#### Bug: Prix non affichés
+**Cause**: Mismatch snake_case (DB) vs camelCase (TypeScript)
+- DB retourne `price_coins`, code accède `priceCoins`
+
+**Solution** (commit `62271ea`):
+- Ajout fonctions de transformation dans service
+- `transformShopItem()` convertit tous les champs
+- Application sur tous les endpoints
+
+**Décisions Techniques**:
+- **Transformation layer**: Services transforment DB → TS types
+- **Optimistic UI**: Pas de rafraîchissement pessimiste
+- **Local ownership check**: Évite appels DB inutiles
+- **Atomic operations**: Coins déduction + item add
+- **Error handling**: Rollback automatique si échec partiel
+
+---
+
 ## Architecture Évolutive
 
 ### Services
@@ -666,12 +775,12 @@ Logique métier pure (sans dépendances):
 
 ## Prochaines Étapes
 
-### [0013] Shop Basique
-- Items cosmétiques
-- Achat avec coins
-- Inventaire
+### [0014] Équipement du Personnage
+- Service equipment.service.ts
+- Interface d'équipement dans character screen
+- Affichage visuel des items équipés
 
-### [0014+] À venir
+### [0015+] À venir
 - Système de quêtes
 - Écran character avec équipements
 - Historique du journal dans character screen

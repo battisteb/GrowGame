@@ -2,7 +2,7 @@
 
 > Roadmap et suivi du développement
 
-**Dernière mise à jour** : 2025-12-27
+**Dernière mise à jour** : 2025-12-30
 
 ---
 
@@ -393,28 +393,39 @@ Phase 5 : Polish & Amélioration           ⏳ À VENIR
 
 **Objectif** : Récompenses visuelles
 
-### [0013] - Shop basique
+### [0013] - Shop basique ✅
 
 **Responsable** : Dev A
 
+**Status** : TERMINÉ (commit: cd0b5f9, PR #11)
+
 **Tâches** :
-- [ ] Peupler la table `shop_items` avec des items de base
-- [ ] Créer `src/services/shop.service.ts`
-  - [ ] `getShopItems()`
-  - [ ] `purchaseItem(userId, itemId, price)`
-- [ ] Implémenter `app/(tabs)/shop.tsx`
-  - [ ] Grille d'items avec prix
-  - [ ] Vérifier les coins avant achat
-  - [ ] Ajouter l'item à `user_items`
+- [x] Peupler la table `shop_items` avec des items de base (34 items: cosmetics, decorations, jokers)
+- [x] Créer `src/services/shop.service.ts`
+  - [x] `getShopItems()` et `getShopItemsByType()`
+  - [x] `purchaseItem()` avec validation coins et ownership
+  - [x] `getUserItems()` pour l'inventaire
+- [x] Implémenter `app/(tabs)/shop.tsx`
+  - [x] Grille 2 colonnes avec rarity badges
+  - [x] Filter tabs (All, Cosmetics, Decorations, Jokers)
+  - [x] Vérification coins avant achat
+  - [x] Tracking ownership (items possédés)
+- [x] Créer `shopStore.ts` pour state management
+- [x] Fix snake_case/camelCase transformation
 
 **Fichiers clés** :
-- `supabase/migrations/003_shop_items.sql`
-- `src/services/shop.service.ts`
-- `app/(tabs)/shop.tsx`
+- `supabase/migrations/005_populate_shop_items.sql`
+- `apps/mobile/src/services/shop.service.ts`
+- `apps/mobile/src/stores/shopStore.ts`
+- `apps/mobile/app/(tabs)/shop.tsx`
+- `apps/mobile/src/stores/authStore.ts` (clear shop on logout)
 
 **Critères de "done"** :
-- L'utilisateur peut acheter des items avec ses coins
-- Les items achetés apparaissent dans son inventaire
+- ✅ L'utilisateur peut acheter des items avec ses coins
+- ✅ Les items achetés apparaissent dans son inventaire
+- ✅ Filtrage par type d'item fonctionnel
+- ✅ Prévention des achats en double
+- ✅ Déduction automatique des coins
 
 ---
 
@@ -628,7 +639,8 @@ Implémenter un système de decay pour les compétences non pratiquées, encoura
 | 0010 | Système de decay + Fix XP | 2025-12-27 | Claude | 8d08a30 | #8 |
 | 0011 | Humeur du personnage | 2025-12-30 | Claude | 53a69d0 | #9 |
 | 0012 | Journal quotidien | 2025-12-30 | Claude | 3051083 | #10 |
+| 0013 | Shop basique | 2025-12-30 | Claude | cd0b5f9 | #11 |
 
 ---
 
-**Prochaine révision** : Après [0013] (shop basique)
+**Prochaine révision** : Après [0014] (équipement du personnage)
