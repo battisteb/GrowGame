@@ -14,7 +14,7 @@ import { XP_REWARDS, COIN_REWARDS, RANKED_XP_REWARDS } from '../constants/game';
 import { updateStreak, updateMood } from './character.service';
 import { uploadHabitPhoto } from './storage.service';
 import { verifyHabitPhoto } from './photoVerification.service';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 
 // =============================================================================
 // GET HABIT LOGS
