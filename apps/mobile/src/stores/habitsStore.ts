@@ -9,7 +9,7 @@
  */
 
 import { create } from 'zustand';
-import type { Habit, Domain, Difficulty, HabitLog } from '../types';
+import type { Habit, Domain, Difficulty, HabitLog, CompletionMode } from '../types';
 import {
   getHabits,
   createHabit,
@@ -22,6 +22,7 @@ import {
   getTodayLogsForCharacter,
   completeHabit,
   uncompleteHabit,
+  completeHabitWithMode,
 } from '../services/habitLogs.service';
 
 interface HabitsState {
@@ -44,6 +45,7 @@ interface HabitsState {
   editHabit: (habitId: string, data: UpdateHabitData) => Promise<boolean>;
   removeHabit: (habitId: string) => Promise<boolean>;
   toggleHabitCompletion: (habit: Habit, characterId: string) => Promise<boolean>;
+  completeHabitRanked: (habit: Habit, characterId: string, userId: string, photoUri: string) => Promise<{ success: boolean; error?: string }>;
   showJournalPrompt: (habitLogId: string, habitName: string, characterId: string) => void;
   hideJournalPrompt: () => void;
   clearHabits: () => void;
@@ -272,6 +274,55 @@ export const useHabitsStore = create<HabitsState>((set, get) => ({
       console.error('❌ Toggle habit completion exception:', error);
       set({ error: String(error) });
       return false;
+    }
+  },
+
+  /**
+   * Complete habit in ranked mode with photo verification
+   */
+  completeHabitRanked: async (
+    habit: Habit,
+    characterId: string,
+    userId: string,
+    photoUri: string
+  ): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const { loadTodayLogs } = get();
+
+      console.log('🏆 Completing habit in ranked mode:', habit.name);
+      const result = await completeHabitWithMode(habit, characterId, userId, {
+        mode: 'ranked',
+        photoUri,
+      });
+
+      if (!result.success) {
+        console.error('❌ Ranked completion failed:', result.error);
+        if (result.verificationFailed) {
+          return {
+            success: false,
+            error: result.error || 'Photo verification failed',
+          };
+        }
+        set({ error: result.error || 'Failed to complete habit' });
+        return { success: false, error: result.error };
+      }
+
+      console.log('✅ Habit completed in ranked mode, refreshing logs...');
+      // Reload today's logs from database
+      await loadTodayLogs(characterId);
+
+      // Show journal prompt modal (optional)
+      if (result.log?.id) {
+        const { showJournalPrompt } = get();
+        showJournalPrompt(result.log.id, habit.name, characterId);
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error('❌ Complete habit ranked exception:', error);
+      const errorMsg = String(error);
+      set({ error: errorMsg });
+      return { success: false, error: errorMsg };
     }
   },
 

@@ -12,17 +12,22 @@ import {
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useCharacterStore } from '../../src/stores/characterStore';
 import { useHabitsStore } from '../../src/stores/habitsStore';
+import { useAuthStore } from '../../src/stores/authStore';
 import { HabitCard } from '../../src/components/HabitCard';
 import { HabitForm } from '../../src/components/HabitForm';
 import { JournalPromptModal } from '../../src/components/JournalPromptModal';
+import { CompletionModeModal } from '../../src/components/CompletionModeModal';
+import { PhotoCaptureModal } from '../../src/components/PhotoCaptureModal';
 import { showConfirmAlert } from '../../src/utils/alert';
-import type { Domain, Difficulty, Habit } from '../../src/types';
+import type { Domain, Difficulty, Habit, CompletionMode } from '../../src/types';
 
 export default function HabitsScreen() {
+  const { user } = useAuthStore();
   const { character, refreshCharacter } = useCharacterStore();
   const {
     habits,
@@ -34,6 +39,7 @@ export default function HabitsScreen() {
     editHabit,
     removeHabit,
     toggleHabitCompletion,
+    completeHabitRanked,
     journalPromptVisible,
     journalPromptData,
     hideJournalPrompt,
@@ -41,6 +47,11 @@ export default function HabitsScreen() {
 
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
+
+  // Ranked mode state
+  const [modeModalVisible, setModeModalVisible] = useState(false);
+  const [photoModalVisible, setPhotoModalVisible] = useState(false);
+  const [selectedHabit, setSelectedHabit] = useState<Habit | null>(null);
 
   // Load habits and today's logs when character is available
   useEffect(() => {
@@ -98,12 +109,76 @@ export default function HabitsScreen() {
   const handleToggleCompletion = async (habit: Habit) => {
     if (!character?.id) return;
 
-    const success = await toggleHabitCompletion(habit, character.id);
+    const isCompleted = todayLogs.has(habit.id);
 
-    if (success) {
-      // Refresh character to show updated XP and coins
-      await refreshCharacter();
+    if (isCompleted) {
+      // Uncomplete the habit (existing flow)
+      const success = await toggleHabitCompletion(habit, character.id);
+      if (success) {
+        await refreshCharacter();
+      }
+    } else {
+      // Not completed yet - show mode selection modal
+      setSelectedHabit(habit);
+      setModeModalVisible(true);
     }
+  };
+
+  const handleModeSelected = async (mode: CompletionMode) => {
+    setModeModalVisible(false);
+
+    if (!selectedHabit || !character?.id) return;
+
+    if (mode === 'normal') {
+      // Complete in normal mode (existing flow)
+      const success = await toggleHabitCompletion(selectedHabit, character.id);
+      if (success) {
+        await refreshCharacter();
+      }
+      setSelectedHabit(null);
+    } else {
+      // Ranked mode - show photo modal
+      setPhotoModalVisible(true);
+    }
+  };
+
+  const handlePhotoSelected = async (photoUri: string) => {
+    if (!selectedHabit || !character?.id || !user?.id) {
+      setPhotoModalVisible(false);
+      setSelectedHabit(null);
+      return;
+    }
+
+    const result = await completeHabitRanked(
+      selectedHabit,
+      character.id,
+      user.id,
+      photoUri
+    );
+
+    setPhotoModalVisible(false);
+    setSelectedHabit(null);
+
+    if (result.success) {
+      await refreshCharacter();
+    } else {
+      // Show error alert
+      Alert.alert(
+        'Erreur de vérification',
+        result.error || 'La photo n\'a pas pu être vérifiée',
+        [{ text: 'OK' }]
+      );
+    }
+  };
+
+  const handleCancelMode = () => {
+    setModeModalVisible(false);
+    setSelectedHabit(null);
+  };
+
+  const handleCancelPhoto = () => {
+    setPhotoModalVisible(false);
+    setSelectedHabit(null);
   };
 
   const openEditForm = (habit: Habit) => {
@@ -226,6 +301,26 @@ export default function HabitsScreen() {
             console.log(`📝 Journal entry created! +${xpEarned} XP`);
             refreshCharacter();
           }}
+        />
+      )}
+
+      {/* Completion Mode Modal (Normal vs Ranked) */}
+      {selectedHabit && (
+        <CompletionModeModal
+          visible={modeModalVisible}
+          habitName={selectedHabit.name}
+          onSelectMode={handleModeSelected}
+          onCancel={handleCancelMode}
+        />
+      )}
+
+      {/* Photo Capture Modal (for Ranked mode) */}
+      {selectedHabit && (
+        <PhotoCaptureModal
+          visible={photoModalVisible}
+          habitName={selectedHabit.name}
+          onPhotoSelected={handlePhotoSelected}
+          onCancel={handleCancelPhoto}
         />
       )}
     </SafeAreaView>

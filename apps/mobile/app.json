@@ -30,7 +30,14 @@
       "bundler": "metro"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "L'app a besoin d'accéder à vos photos pour valider vos habitudes en mode ranked.",
+          "cameraPermission": "L'app a besoin d'accéder à votre caméra pour prendre des photos de vos habitudes."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
