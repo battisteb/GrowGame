@@ -12,7 +12,16 @@
       "Bash(git branch:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(gh --version:*)"
+      "Bash(gh --version:*)",
+      "Bash(psql:*)",
+      "Bash(git checkout:*)",
+      "Bash(git pull:*)",
+      "Bash(cd:*)",
+      "Bash(git push:*)",
+      "Bash(gh pr create:*)",
+      "Bash(ls:*)",
+      "Bash(cat:*)",
+      "Bash(npx supabase:*)"
     ]
   }
 }

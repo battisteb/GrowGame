@@ -133,6 +133,42 @@ export default function CharacterScreen() {
           </View>
         </View>
 
+        {/* Ranked Stats */}
+        <View style={styles.rankedStatsCard}>
+          <View style={styles.rankedHeader}>
+            <Text style={styles.sectionTitle}>🏆 Statistiques Ranked</Text>
+          </View>
+          <View style={styles.rankedContent}>
+            <View style={styles.rankedLevelContainer}>
+              <Text style={styles.rankedLevel}>{character.ranked_level}</Text>
+              <Text style={styles.rankedLevelLabel}>Niveau Ranked</Text>
+            </View>
+            <View style={styles.rankedXpContainer}>
+              <View style={styles.rankedXpHeader}>
+                <Text style={styles.rankedXpLabel}>Progression Ranked</Text>
+                <Text style={styles.rankedXpValue}>{character.ranked_xp.toLocaleString()} XP</Text>
+              </View>
+              <View style={styles.progressBarBg}>
+                <View
+                  style={[
+                    styles.progressBarFill,
+                    {
+                      width: `${Math.min(
+                        ((character.ranked_xp % 100) / 100) * 100,
+                        100
+                      )}%`,
+                      backgroundColor: '#fbbf24',
+                    },
+                  ]}
+                />
+              </View>
+              <Text style={styles.rankedXpHint}>
+                💡 Complète des habitudes en mode ranked pour augmenter ton niveau !
+              </Text>
+            </View>
+          </View>
+        </View>
+
         {/* Equipment Section */}
         <View style={styles.equipmentCard}>
           <Text style={styles.sectionTitle}>Équipement</Text>
@@ -323,6 +359,70 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#6b7280',
     marginTop: 4,
+  },
+  // Ranked stats styles
+  rankedStatsCard: {
+    backgroundColor: '#fffbeb',
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#fbbf24',
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  rankedHeader: {
+    marginBottom: 12,
+  },
+  rankedContent: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  rankedLevelContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fef3c7',
+    borderRadius: 12,
+    padding: 16,
+    minWidth: 100,
+  },
+  rankedLevel: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#92400e',
+  },
+  rankedLevelLabel: {
+    fontSize: 12,
+    color: '#92400e',
+    marginTop: 4,
+    fontWeight: '600',
+  },
+  rankedXpContainer: {
+    flex: 1,
+  },
+  rankedXpHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  rankedXpLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#92400e',
+  },
+  rankedXpValue: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#92400e',
+  },
+  rankedXpHint: {
+    fontSize: 11,
+    color: '#92400e',
+    marginTop: 8,
+    fontStyle: 'italic',
   },
   // Equipment styles
   equipmentCard: {
