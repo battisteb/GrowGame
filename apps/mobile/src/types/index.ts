@@ -134,6 +134,39 @@ export interface Equipment {
 }
 
 // =============================================================================
+// QUÊTES
+// =============================================================================
+
+export interface DailyQuest {
+  id: string;
+  character_id: string;
+  quest_date: string;
+  template_id: string;
+  params: Record<string, unknown>;
+  current_progress: number;
+  target: number;
+  reward_xp: number;
+  reward_coins: number;
+  is_claimed: boolean;
+  completed_at: string | null;
+  created_at: string;
+}
+
+export interface Achievement {
+  id: string;
+  character_id: string;
+  achievement_id: string;
+  current_progress: number;
+  target: number;
+  reward_xp: number;
+  reward_coins: number;
+  is_claimed: boolean;
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// =============================================================================
 // UTILISATEUR
 // =============================================================================
 

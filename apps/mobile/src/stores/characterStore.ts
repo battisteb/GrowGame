@@ -21,6 +21,7 @@ import {
   equipItem as equipItemService,
   unequipItem as unequipItemService,
 } from '../services/equipment.service';
+import { useQuestStore } from './questStore';
 
 interface CharacterState {
   // State
@@ -137,6 +138,12 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
 
     const userId = character.user_id;
     await get().loadCharacter(userId);
+
+    // Update quest/achievement progress after character refresh
+    const refreshedChar = get().character;
+    if (refreshedChar) {
+      useQuestStore.getState().onCharacterUpdated(refreshedChar.id).catch(console.error);
+    }
   },
 
   /**

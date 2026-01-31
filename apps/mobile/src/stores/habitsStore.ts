@@ -10,6 +10,7 @@
 
 import { create } from 'zustand';
 import type { Habit, Domain, Difficulty, HabitLog, CompletionMode } from '../types';
+import { useQuestStore } from './questStore';
 import {
   getHabits,
   createHabit,
@@ -262,6 +263,9 @@ export const useHabitsStore = create<HabitsState>((set, get) => ({
         // Reload today's logs from database to ensure sync
         await loadTodayLogs(characterId);
 
+        // Update quest progress
+        await useQuestStore.getState().onHabitCompleted(characterId, habit, 'normal');
+
         // Show journal prompt modal (optional)
         if (result.log?.id) {
           const { showJournalPrompt } = get();
@@ -310,6 +314,9 @@ export const useHabitsStore = create<HabitsState>((set, get) => ({
       console.log('✅ Habit completed in ranked mode, refreshing logs...');
       // Reload today's logs from database
       await loadTodayLogs(characterId);
+
+      // Update quest progress
+      await useQuestStore.getState().onHabitCompleted(characterId, habit, 'ranked');
 
       // Show journal prompt modal (optional)
       if (result.log?.id) {
