@@ -37,6 +37,12 @@
           "photosPermission": "L'app a besoin d'accéder à vos photos pour valider vos habitudes en mode ranked.",
           "cameraPermission": "L'app a besoin d'accéder à votre caméra pour prendre des photos de vos habitudes."
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#6366f1"
+        }
       ]
     ],
     "experiments": {
