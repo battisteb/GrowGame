@@ -167,6 +167,19 @@ export interface Achievement {
 }
 
 // =============================================================================
+// LEADERBOARD
+// =============================================================================
+
+export interface LeaderboardEntry {
+  rank: number;
+  character_id: string;
+  character_name: string;
+  ranked_level: number;
+  xp: number;
+  is_current_user: boolean;
+}
+
+// =============================================================================
 // UTILISATEUR
 // =============================================================================
 

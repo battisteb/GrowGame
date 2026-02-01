@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -11,8 +11,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../src/stores/authStore';
 import { useCharacterStore } from '../../src/stores/characterStore';
 import { EquipmentModal } from '../../src/components/EquipmentModal';
+import { LeaderboardCard } from '../../src/components/LeaderboardCard';
+import { getGlobalLeaderboard, getWeeklyLeaderboard, getUserRank } from '../../src/services/leaderboard.service';
 import { DOMAIN_INFO, MOOD_EMOJIS, RARITY_COLORS, xpForLevel } from '../../src/constants/game';
-import type { EquipmentSlot, Equipment, ShopItem } from '../../src/types';
+import type { EquipmentSlot, Equipment, ShopItem, LeaderboardEntry } from '../../src/types';
 
 // Slot labels with emojis
 const SLOT_LABELS: Record<EquipmentSlot, { name: string; emoji: string }> = {
@@ -46,6 +48,10 @@ export default function CharacterScreen() {
   } = useCharacterStore();
 
   const [selectedSlot, setSelectedSlot] = useState<EquipmentSlot | null>(null);
+  const [leaderboardTab, setLeaderboardTab] = useState<'global' | 'weekly'>('global');
+  const [leaderboardEntries, setLeaderboardEntries] = useState<LeaderboardEntry[]>([]);
+  const [userRank, setUserRank] = useState<{ rank?: number; xp?: number } | null>(null);
+  const [isLoadingLeaderboard, setIsLoadingLeaderboard] = useState(false);
 
   // Load character and equipment on mount
   useEffect(() => {
@@ -59,6 +65,27 @@ export default function CharacterScreen() {
       loadEquipment(character.id);
     }
   }, [character?.id]);
+
+  const fetchLeaderboard = useCallback(async (type: 'global' | 'weekly') => {
+    if (!character?.id) return;
+    setIsLoadingLeaderboard(true);
+    const fetchFn = type === 'global' ? getGlobalLeaderboard : getWeeklyLeaderboard;
+    const [boardResult, rankResult] = await Promise.all([
+      fetchFn(10),
+      getUserRank(character.id, type),
+    ]);
+    if (boardResult.success && boardResult.entries) {
+      setLeaderboardEntries(boardResult.entries);
+    }
+    if (rankResult.success) {
+      setUserRank({ rank: rankResult.rank, xp: rankResult.xp });
+    }
+    setIsLoadingLeaderboard(false);
+  }, [character?.id]);
+
+  useEffect(() => {
+    fetchLeaderboard(leaderboardTab);
+  }, [leaderboardTab, fetchLeaderboard]);
 
   const handleEquipItem = async (itemId: string) => {
     if (!character?.id || !user?.id) return;
@@ -167,6 +194,57 @@ export default function CharacterScreen() {
               </Text>
             </View>
           </View>
+        </View>
+
+        {/* Leaderboard Section */}
+        <View style={styles.leaderboardCard}>
+          <Text style={styles.sectionTitle}>Classement Ranked</Text>
+          <View style={styles.tabRow}>
+            <TouchableOpacity
+              style={[styles.tab, leaderboardTab === 'global' && styles.tabActive]}
+              onPress={() => setLeaderboardTab('global')}
+            >
+              <Text style={[styles.tabText, leaderboardTab === 'global' && styles.tabTextActive]}>
+                Global
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.tab, leaderboardTab === 'weekly' && styles.tabActive]}
+              onPress={() => setLeaderboardTab('weekly')}
+            >
+              <Text style={[styles.tabText, leaderboardTab === 'weekly' && styles.tabTextActive]}>
+                Hebdomadaire
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {isLoadingLeaderboard ? (
+            <ActivityIndicator size="small" color="#6366f1" style={{ marginVertical: 20 }} />
+          ) : leaderboardEntries.length === 0 ? (
+            <Text style={styles.emptyLeaderboard}>
+              Aucun joueur classé pour le moment.
+            </Text>
+          ) : (
+            <>
+              {leaderboardEntries.map((entry) => (
+                <LeaderboardCard
+                  key={entry.character_id}
+                  rank={entry.rank}
+                  characterName={entry.character_name}
+                  rankedLevel={entry.ranked_level}
+                  xp={entry.xp}
+                  isCurrentUser={entry.is_current_user}
+                />
+              ))}
+              {userRank?.rank && userRank.rank > 10 && (
+                <View style={styles.userRankFooter}>
+                  <Text style={styles.userRankText}>
+                    Ta position : #{userRank.rank} ({(userRank.xp ?? 0).toLocaleString()} XP)
+                  </Text>
+                </View>
+              )}
+            </>
+          )}
         </View>
 
         {/* Equipment Section */}
@@ -423,6 +501,60 @@ const styles = StyleSheet.create({
     color: '#92400e',
     marginTop: 8,
     fontStyle: 'italic',
+  },
+  // Leaderboard styles
+  leaderboardCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  tabRow: {
+    flexDirection: 'row',
+    marginBottom: 12,
+    backgroundColor: '#f3f4f6',
+    borderRadius: 8,
+    padding: 3,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 8,
+    alignItems: 'center',
+    borderRadius: 6,
+  },
+  tabActive: {
+    backgroundColor: '#6366f1',
+  },
+  tabText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#6b7280',
+  },
+  tabTextActive: {
+    color: '#ffffff',
+  },
+  emptyLeaderboard: {
+    textAlign: 'center',
+    color: '#9ca3af',
+    fontSize: 14,
+    paddingVertical: 20,
+  },
+  userRankFooter: {
+    marginTop: 8,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
+    alignItems: 'center',
+  },
+  userRankText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#4f46e5',
   },
   // Equipment styles
   equipmentCard: {
