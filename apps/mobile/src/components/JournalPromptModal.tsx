@@ -10,6 +10,7 @@
 import { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, Modal, ActivityIndicator } from 'react-native';
 import { createJournalEntry } from '../services/journal.service';
+import { useQuestStore } from '../stores/questStore';
 import type { Mood } from '../types';
 
 interface JournalPromptModalProps {
@@ -55,6 +56,8 @@ export function JournalPromptModal({
 
     if (result.success && result.xpEarned) {
       onSuccess?.(result.xpEarned);
+      // Update quest progress for journal writing
+      useQuestStore.getState().onJournalWritten(characterId).catch(console.error);
     }
 
     setEntryText('');

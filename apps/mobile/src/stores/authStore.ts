@@ -22,6 +22,7 @@ import { createCharacter } from '../services/character.service';
 import { useCharacterStore } from './characterStore';
 import { useHabitsStore } from './habitsStore';
 import { useShopStore } from './shopStore';
+import { useQuestStore } from './questStore';
 
 interface AuthState {
   // State
@@ -203,6 +204,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       useCharacterStore.getState().clearCharacter();
       useHabitsStore.getState().clearHabits();
       useShopStore.getState().clearShop();
+      useQuestStore.getState().clearQuests();
 
       set({
         user: null,
