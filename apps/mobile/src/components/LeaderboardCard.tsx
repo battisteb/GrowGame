@@ -9,7 +9,15 @@
  * - Highlighted if current user
  */
 
+import { useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withDelay,
+  Easing,
+} from 'react-native-reanimated';
 
 interface LeaderboardCardProps {
   rank: number;
@@ -17,6 +25,7 @@ interface LeaderboardCardProps {
   rankedLevel: number;
   xp: number;
   isCurrentUser: boolean;
+  index?: number;
 }
 
 const RANK_EMOJI: Record<number, string> = {
@@ -31,9 +40,29 @@ export function LeaderboardCard({
   rankedLevel,
   xp,
   isCurrentUser,
+  index = 0,
 }: LeaderboardCardProps) {
+  const opacity = useSharedValue(0);
+  const translateY = useSharedValue(12);
+
+  useEffect(() => {
+    opacity.value = withDelay(
+      index * 60,
+      withTiming(1, { duration: 300, easing: Easing.out(Easing.cubic) })
+    );
+    translateY.value = withDelay(
+      index * 60,
+      withTiming(0, { duration: 300, easing: Easing.out(Easing.cubic) })
+    );
+  }, [index]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ translateY: translateY.value }],
+  }));
+
   return (
-    <View style={[styles.row, isCurrentUser && styles.rowCurrentUser]}>
+    <Animated.View style={[styles.row, isCurrentUser && styles.rowCurrentUser, animatedStyle]}>
       <View style={styles.rankContainer}>
         <Text style={styles.rankText}>
           {RANK_EMOJI[rank] || `#${rank}`}
@@ -52,7 +81,7 @@ export function LeaderboardCard({
       <Text style={[styles.xp, isCurrentUser && styles.xpCurrentUser]}>
         {xp.toLocaleString()} XP
       </Text>
-    </View>
+    </Animated.View>
   );
 }
 

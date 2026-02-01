@@ -4,7 +4,9 @@
  * Displays XP progress towards next level
  */
 
+import { useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing } from 'react-native-reanimated';
 import { xpForLevel } from '../constants/game';
 
 interface XPProgressBarProps {
@@ -13,13 +15,24 @@ interface XPProgressBarProps {
 }
 
 export function XPProgressBar({ currentLevel, currentXP }: XPProgressBarProps) {
-  // Calculate XP progress in current level
-  // xpForLevel(n) gives cumulative XP needed to reach level n from level 0
   const xpAtCurrentLevel = xpForLevel(currentLevel);
   const xpAtNextLevel = xpForLevel(currentLevel + 1);
   const xpInThisLevel = Math.max(0, currentXP - xpAtCurrentLevel);
   const xpNeededForNextLevel = xpAtNextLevel - xpAtCurrentLevel;
   const progress = Math.min(Math.max(0, (xpInThisLevel / xpNeededForNextLevel) * 100), 100);
+
+  const animatedWidth = useSharedValue(0);
+
+  useEffect(() => {
+    animatedWidth.value = withTiming(progress, {
+      duration: 600,
+      easing: Easing.out(Easing.cubic),
+    });
+  }, [progress]);
+
+  const animatedBarStyle = useAnimatedStyle(() => ({
+    width: `${animatedWidth.value}%`,
+  }));
 
   return (
     <View style={styles.container}>
@@ -30,7 +43,7 @@ export function XPProgressBar({ currentLevel, currentXP }: XPProgressBarProps) {
         <Text style={styles.nextLevel}>Niveau {currentLevel + 1}</Text>
       </View>
       <View style={styles.progressBarBackground}>
-        <View style={[styles.progressBarFill, { width: `${progress}%` }]} />
+        <Animated.View style={[styles.progressBarFill, animatedBarStyle]} />
       </View>
     </View>
   );
