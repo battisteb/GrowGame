@@ -14,6 +14,12 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withSequence,
+} from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useCharacterStore } from '../../src/stores/characterStore';
 import { useHabitsStore } from '../../src/stores/habitsStore';
@@ -355,9 +361,32 @@ function HabitCompletionCard({
     3: '⭐⭐⭐',
   };
 
+  const checkScale = useSharedValue(1);
+  const cardScale = useSharedValue(1);
+
+  const handleToggle = () => {
+    checkScale.value = withSequence(
+      withSpring(1.3, { damping: 4, stiffness: 300 }),
+      withSpring(1, { damping: 8, stiffness: 200 })
+    );
+    cardScale.value = withSequence(
+      withSpring(0.97, { damping: 10, stiffness: 400 }),
+      withSpring(1, { damping: 8, stiffness: 200 })
+    );
+    onToggle();
+  };
+
+  const checkAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: checkScale.value }],
+  }));
+
+  const cardAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: cardScale.value }],
+  }));
+
   return (
-    <View
-      style={[styles.habitCard, isCompleted && styles.habitCardCompleted]}
+    <Animated.View
+      style={[styles.habitCard, isCompleted && styles.habitCardCompleted, cardAnimatedStyle]}
     >
       {/* Left side: Domain badge and info */}
       <View style={styles.habitLeft}>
@@ -409,17 +438,19 @@ function HabitCompletionCard({
         </TouchableOpacity>
 
         {/* Completion checkbox */}
-        <TouchableOpacity
-          style={[
-            styles.checkbox,
-            isCompleted && styles.checkboxCompleted,
-          ]}
-          onPress={onToggle}
-        >
-          {isCompleted && <Text style={styles.checkMark}>✓</Text>}
+        <TouchableOpacity onPress={handleToggle}>
+          <Animated.View
+            style={[
+              styles.checkbox,
+              isCompleted && styles.checkboxCompleted,
+              checkAnimatedStyle,
+            ]}
+          >
+            {isCompleted && <Text style={styles.checkMark}>✓</Text>}
+          </Animated.View>
         </TouchableOpacity>
       </View>
-    </View>
+    </Animated.View>
   );
 }
 

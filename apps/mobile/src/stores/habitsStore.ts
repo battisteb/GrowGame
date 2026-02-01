@@ -30,6 +30,7 @@ import {
   showMilestoneNotification,
 } from '../services/notification.service';
 import { useCharacterStore } from './characterStore';
+import { showXPToast } from '../components/XPToast';
 
 interface HabitsState {
   // State
@@ -271,6 +272,11 @@ export const useHabitsStore = create<HabitsState>((set, get) => ({
         // Update quest progress
         await useQuestStore.getState().onHabitCompleted(characterId, habit, 'normal');
 
+        // Show XP toast
+        if (result.xpEarned) {
+          showXPToast(result.xpEarned);
+        }
+
         // Show journal prompt modal (optional)
         if (result.log?.id) {
           const { showJournalPrompt } = get();
@@ -335,6 +341,14 @@ export const useHabitsStore = create<HabitsState>((set, get) => ({
 
       // Update quest progress
       await useQuestStore.getState().onHabitCompleted(characterId, habit, 'ranked');
+
+      // Show XP toast
+      if (result.xpEarned) {
+        showXPToast(result.xpEarned);
+      }
+      if (result.rankedXpEarned) {
+        setTimeout(() => showXPToast(result.rankedXpEarned!, 'Ranked XP'), 600);
+      }
 
       // Show journal prompt modal (optional)
       if (result.log?.id) {
