@@ -296,6 +296,16 @@ export const completeHabitWithMode = async (
       } else {
         console.log(`🏆 Ranked XP awarded: +${rankedXpEarned}`);
       }
+
+      // Record weekly ranked XP for leaderboard
+      const { error: weeklyError } = await supabase.rpc('record_weekly_ranked_xp', {
+        p_character_id: characterId,
+        p_xp: rankedXpEarned,
+      });
+
+      if (weeklyError) {
+        console.error('❌ Error recording weekly ranked XP:', weeklyError);
+      }
     }
 
     // Step 9: Update streak and check for bonus
