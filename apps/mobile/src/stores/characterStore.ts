@@ -22,6 +22,12 @@ import {
   unequipItem as unequipItemService,
 } from '../services/equipment.service';
 import { useQuestStore } from './questStore';
+import {
+  getNotificationsEnabled,
+  setNotificationsEnabled,
+  rescheduleAllNotifications,
+  cancelAllNotifications,
+} from '../services/notification.service';
 
 interface CharacterState {
   // State
@@ -32,6 +38,7 @@ interface CharacterState {
   isLoadingEquipment: boolean;
   error: string | null;
   decayMessage: string | null;
+  notificationsEnabled: boolean;
 
   // Actions
   loadCharacter: (userId: string) => Promise<void>;
@@ -39,6 +46,8 @@ interface CharacterState {
   loadEquipment: (characterId: string) => Promise<void>;
   equipItem: (characterId: string, itemId: string, userId: string) => Promise<boolean>;
   unequipItem: (characterId: string, slot: EquipmentSlot) => Promise<boolean>;
+  loadNotificationPreference: () => Promise<void>;
+  toggleNotifications: () => Promise<void>;
   clearCharacter: () => void;
   clearDecayMessage: () => void;
 }
@@ -52,6 +61,7 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
   isLoadingEquipment: false,
   error: null,
   decayMessage: null,
+  notificationsEnabled: true,
 
   /**
    * Load character and domain skills for a user
@@ -147,9 +157,39 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
   },
 
   /**
+   * Load notification preference from AsyncStorage
+   */
+  loadNotificationPreference: async () => {
+    const enabled = await getNotificationsEnabled();
+    set({ notificationsEnabled: enabled });
+  },
+
+  /**
+   * Toggle notifications on/off
+   */
+  toggleNotifications: async () => {
+    const newValue = !get().notificationsEnabled;
+    set({ notificationsEnabled: newValue });
+    await setNotificationsEnabled(newValue);
+
+    // If turning on, reschedule based on current character state
+    if (newValue) {
+      const { character } = get();
+      if (character) {
+        await rescheduleAllNotifications({
+          currentStreak: character.current_streak,
+          lastActivityDate: character.last_activity_date,
+          hasCompletedHabitsToday: false, // Will be recalculated on next app open
+        });
+      }
+    }
+  },
+
+  /**
    * Clear character state (on logout)
    */
   clearCharacter: () => {
+    cancelAllNotifications().catch(console.error);
     set({
       character: null,
       domainSkills: [],
@@ -158,6 +198,7 @@ export const useCharacterStore = create<CharacterState>((set, get) => ({
       isLoadingEquipment: false,
       error: null,
       decayMessage: null,
+      notificationsEnabled: true,
     });
   },
 

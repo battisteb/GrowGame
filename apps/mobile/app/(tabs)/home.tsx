@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Switch } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../src/stores/authStore';
@@ -13,7 +13,7 @@ import { getMoodDescription } from '../../src/utils/moodCalculator';
 export default function HomeScreen() {
   const router = useRouter();
   const { user, logout } = useAuthStore();
-  const { character, domainSkills, isLoading, decayMessage, clearDecayMessage } = useCharacterStore();
+  const { character, domainSkills, isLoading, decayMessage, clearDecayMessage, notificationsEnabled, toggleNotifications } = useCharacterStore();
 
   // Display decay notification when skills have decayed
   useEffect(() => {
@@ -120,6 +120,19 @@ export default function HomeScreen() {
           {domainSkills.map((skill) => (
             <DomainSkillCard key={skill.id} skill={skill} />
           ))}
+        </View>
+
+        {/* Notification Toggle */}
+        <View style={styles.settingsCard}>
+          <View style={styles.settingsRow}>
+            <Text style={styles.settingsLabel}>🔔 Notifications</Text>
+            <Switch
+              value={notificationsEnabled}
+              onValueChange={toggleNotifications}
+              trackColor={{ false: '#d1d5db', true: '#c7d2fe' }}
+              thumbColor={notificationsEnabled ? '#6366f1' : '#9ca3af'}
+            />
+          </View>
         </View>
 
         {/* Logout Button */}
@@ -266,6 +279,27 @@ const styles = StyleSheet.create({
   },
   skillsSection: {
     marginBottom: 24,
+  },
+  settingsCard: {
+    backgroundColor: '#ffffff',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  settingsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  settingsLabel: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#1f2937',
   },
   logoutButton: {
     backgroundColor: '#ef4444',
