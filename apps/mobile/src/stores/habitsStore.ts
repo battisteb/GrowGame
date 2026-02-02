@@ -25,6 +25,11 @@ import {
   uncompleteHabit,
   completeHabitWithMode,
 } from '../services/habitLogs.service';
+import {
+  rescheduleAllNotifications,
+  showMilestoneNotification,
+} from '../services/notification.service';
+import { useCharacterStore } from './characterStore';
 
 interface HabitsState {
   // State
@@ -271,6 +276,19 @@ export const useHabitsStore = create<HabitsState>((set, get) => ({
           const { showJournalPrompt } = get();
           showJournalPrompt(result.log.id, habit.name, characterId);
         }
+
+        // Notification hooks: milestone + reschedule
+        if (result.streakBonus && result.streakBonus > 0 && result.currentStreak) {
+          showMilestoneNotification(result.currentStreak, result.streakBonus).catch(console.error);
+        }
+        const char = useCharacterStore.getState().character;
+        if (char) {
+          rescheduleAllNotifications({
+            currentStreak: char.current_streak,
+            lastActivityDate: char.last_activity_date,
+            hasCompletedHabitsToday: true,
+          }).catch(console.error);
+        }
       }
 
       return true;
@@ -322,6 +340,19 @@ export const useHabitsStore = create<HabitsState>((set, get) => ({
       if (result.log?.id) {
         const { showJournalPrompt } = get();
         showJournalPrompt(result.log.id, habit.name, characterId);
+      }
+
+      // Notification hooks: milestone + reschedule
+      if (result.streakBonus && result.streakBonus > 0 && result.currentStreak) {
+        showMilestoneNotification(result.currentStreak, result.streakBonus).catch(console.error);
+      }
+      const char = useCharacterStore.getState().character;
+      if (char) {
+        rescheduleAllNotifications({
+          currentStreak: char.current_streak,
+          lastActivityDate: char.last_activity_date,
+          hasCompletedHabitsToday: true,
+        }).catch(console.error);
       }
 
       return { success: true };
