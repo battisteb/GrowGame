@@ -226,7 +226,7 @@ export default function CharacterScreen() {
             </Text>
           ) : (
             <>
-              {leaderboardEntries.map((entry) => (
+              {leaderboardEntries.map((entry, idx) => (
                 <LeaderboardCard
                   key={entry.character_id}
                   rank={entry.rank}
@@ -234,6 +234,7 @@ export default function CharacterScreen() {
                   rankedLevel={entry.ranked_level}
                   xp={entry.xp}
                   isCurrentUser={entry.is_current_user}
+                  index={idx}
                 />
               ))}
               {userRank?.rank && userRank.rank > 10 && (
