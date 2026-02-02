@@ -2,7 +2,7 @@
 
 > Historique des décisions techniques et modifications importantes
 
-**Dernière mise à jour** : 2025-12-30
+**Dernière mise à jour** : 2026-02-02
 
 ---
 
@@ -12,6 +12,7 @@
 - [Phase 1 - Backend & Auth](#phase-1---backend--auth)
 - [Phase 2 - Core Loop MVP](#phase-2---core-loop-mvp)
 - [Phase 3 - Gamification](#phase-3---gamification)
+- [Phase 4 - Social & Polish](#phase-4---social--polish)
 - [Décisions Techniques](#décisions-techniques)
 - [Problèmes Rencontrés](#problèmes-rencontrés)
 
@@ -926,12 +927,23 @@ Chaque domaine métier a son service:
 - `character.service.ts` - Gestion du personnage
 - `habits.service.ts` - CRUD habitudes
 - `habitLogs.service.ts` - Complétion et historique
+- `shop.service.ts` - Catalogue et achats
+- `equipment.service.ts` - Gestion équipement
+- `journal.service.ts` - Journal quotidien
+- `storage.service.ts` - Upload photos Supabase Storage
+- `photoVerification.service.ts` - Vérification IA (Google Vision)
+- `quest.service.ts` - Quêtes et achievements
+- `notification.service.ts` - Notifications locales
+- `leaderboard.service.ts` - Classements ranked
+- `statistics.service.ts` - Statistiques agrégées
 
 ### Stores (Zustand)
 Un store par domaine d'état:
 - `authStore.ts` - User, session
-- `characterStore.ts` - Character, domain_skills
-- `habitsStore.ts` - Habits, today's logs
+- `characterStore.ts` - Character, domain_skills, equipment, notifications
+- `habitsStore.ts` - Habits, today's logs, journal prompt
+- `shopStore.ts` - Shop items, user inventory
+- `questStore.ts` - Daily quests, achievements
 
 ### Utils
 Logique métier pure (sans dépendances):
@@ -940,21 +952,341 @@ Logique métier pure (sans dépendances):
 - `decayCalculator.ts` - Logique de decay
 - `moodCalculator.ts` - Calcul de l'humeur
 
+### Components
+- `XPProgressBar.tsx` - Barre XP animée (reanimated)
+- `DomainSkillCard.tsx` - Carte compétence domaine
+- `HabitCard.tsx` - Carte habitude
+- `HabitForm.tsx` - Formulaire habitude
+- `JournalPromptModal.tsx` - Modal journal
+- `CompletionModeModal.tsx` - Choix Normal/Ranked
+- `PhotoCaptureModal.tsx` - Capture photo ranked
+- `EquipmentModal.tsx` - Gestion équipement
+- `QuestCard.tsx` - Carte quête/achievement
+- `QuestRewardModal.tsx` - Réclamer récompenses
+- `LeaderboardCard.tsx` - Ligne classement (animée)
+- `XPToast.tsx` - Toast XP flottant (event emitter)
+
+---
+
+## Phase 4 - Social & Polish
+
+### [2025-12-31] [0015] Mode Ranked avec Vérification Photo
+
+**Commit**: `e622638` | **PR**: #13
+
+**Actions**:
+- Mode de complétion ranked avec prise de photo obligatoire
+- Upload photo vers Supabase Storage
+- Vérification IA via Google Cloud Vision API
+- XP ranked séparé (ranked_level, ranked_xp sur characters)
+- Modal de sélection Normal/Ranked, modal de capture photo
+
+**Fichiers créés**:
+- `supabase/migrations/006_ranked_mode.sql`
+- `apps/mobile/src/services/storage.service.ts`
+- `apps/mobile/src/services/photoVerification.service.ts`
+- `apps/mobile/src/components/CompletionModeModal.tsx`
+- `apps/mobile/src/components/PhotoCaptureModal.tsx`
+
+**Fichiers modifiés**:
+- `apps/mobile/src/services/habitLogs.service.ts` (ajout `completeHabitWithMode`)
+- `apps/mobile/src/stores/habitsStore.ts` (ajout `completeHabitRanked`)
+- `apps/mobile/src/types/index.ts` (ajout `CompletionMode`)
+- `apps/mobile/app/(tabs)/habits.tsx` (intégration modals)
+
+**Migration 006**:
+```sql
+-- Ajout champs ranked au character
+ALTER TABLE characters ADD COLUMN ranked_level INTEGER DEFAULT 1;
+ALTER TABLE characters ADD COLUMN ranked_xp INTEGER DEFAULT 0;
+
+-- Ajout completion_mode aux habit_logs
+ALTER TABLE habit_logs ADD COLUMN completion_mode TEXT DEFAULT 'normal';
+
+-- RPC add_ranked_xp: incrémente ranked_xp et recalcule ranked_level
+```
+
+**Rewards Ranked** (multiplicateur 1.5x):
+```
+Difficulté 1: 15 XP ranked
+Difficulté 2: 30 XP ranked
+Difficulté 3: 45 XP ranked
+```
+
+**Flow Ranked**:
+```
+1. Clic sur checkbox habitude → Modal Normal/Ranked
+2. Si Ranked → Modal capture photo (expo-image-picker)
+3. Upload photo vers Supabase Storage
+4. Vérification IA (Google Cloud Vision)
+5. Si valide → XP normal + XP ranked + coins
+6. Si invalide → Erreur "Photo invalide"
+```
+
+---
+
+### [2026-01-31] [0016] Système de Quêtes et Achievements
+
+**Commit**: `7e73295` | **PR**: #14
+
+**Actions**:
+- Quêtes journalières générées automatiquement (3 par jour)
+- Système d'achievements permanents (milestones)
+- Progression automatique via hooks dans habitsStore
+- Récompenses réclamables (XP + coins)
+- Nouvel onglet Quêtes dans la tab bar
+
+**Fichiers créés**:
+- `supabase/migrations/007_quest_system.sql`
+- `apps/mobile/src/constants/quests.ts` (templates de quêtes)
+- `apps/mobile/src/services/quest.service.ts`
+- `apps/mobile/src/stores/questStore.ts`
+- `apps/mobile/src/components/QuestCard.tsx`
+- `apps/mobile/src/components/QuestRewardModal.tsx`
+- `apps/mobile/app/(tabs)/quests.tsx`
+
+**Fichiers modifiés**:
+- `apps/mobile/app/(tabs)/_layout.tsx` (ajout onglet Quêtes)
+- `apps/mobile/src/stores/habitsStore.ts` (hooks quest progress)
+- `apps/mobile/src/stores/authStore.ts` (clear quests on logout)
+- `apps/mobile/src/types/index.ts` (DailyQuest, Achievement)
+
+**Tables créées**:
+```sql
+-- daily_quests: quêtes journalières avec progression
+CREATE TABLE daily_quests (
+  id UUID PRIMARY KEY,
+  character_id UUID REFERENCES characters(id),
+  quest_date DATE NOT NULL,
+  template_id TEXT NOT NULL,
+  params JSONB DEFAULT '{}',
+  current_progress INTEGER DEFAULT 0,
+  target INTEGER NOT NULL,
+  reward_xp INTEGER NOT NULL,
+  reward_coins INTEGER NOT NULL,
+  is_claimed BOOLEAN DEFAULT false,
+  completed_at TIMESTAMPTZ
+);
+
+-- achievements: milestones permanents
+CREATE TABLE achievements (
+  id UUID PRIMARY KEY,
+  character_id UUID REFERENCES characters(id),
+  achievement_id TEXT NOT NULL,
+  current_progress INTEGER DEFAULT 0,
+  target INTEGER NOT NULL,
+  reward_xp INTEGER NOT NULL,
+  reward_coins INTEGER NOT NULL,
+  is_claimed BOOLEAN DEFAULT false,
+  completed_at TIMESTAMPTZ
+);
+```
+
+**Logique**:
+- `questStore.onHabitCompleted()` appelé après chaque complétion
+- Met à jour la progression des quêtes journalières et achievements
+- Templates de quêtes: "Complète N habitudes", "Complète une habitude du domaine X", etc.
+
+---
+
+### [2026-02-01] [0017] Notifications Push Locales
+
+**Commit**: `33c2f77` | **PR**: #15
+
+**Actions**:
+- Notifications locales via `expo-notifications`
+- Rappel quotidien à 20h00
+- Alerte streak en danger à 21h00
+- Félicitations milestone (immédiat)
+- Toggle on/off global dans settings
+
+**Fichiers créés**:
+- `apps/mobile/src/services/notification.service.ts`
+
+**Fichiers modifiés**:
+- `apps/mobile/app.json` (plugin expo-notifications)
+- `apps/mobile/src/stores/characterStore.ts` (notificationsEnabled state, toggle, load)
+- `apps/mobile/src/stores/habitsStore.ts` (milestone + reschedule hooks)
+- `apps/mobile/src/providers/AuthProvider.tsx` (init + AppState listener)
+- `apps/mobile/app/(tabs)/home.tsx` (Switch toggle UI)
+
+**Service Notification**:
+```typescript
+// notification.service.ts
+- initializeNotifications(): permissions + handler config
+- getNotificationsEnabled() / setNotificationsEnabled(): AsyncStorage
+- rescheduleAllNotifications(data): cancelle + replanifie selon état
+- scheduleDailyReminder(): DailyTriggerInput à 20h00
+- scheduleStreakDangerAlert(streak): DailyTriggerInput à 21h00
+- showMilestoneNotification(streak, coins): notification immédiate
+- cancelAllNotifications()
+```
+
+**Stratégie de reschedule**:
+- Reschedule à chaque retour au foreground (AppState listener)
+- Reschedule après complétion d'habitude
+- Pas de rappel si habitudes déjà complétées aujourd'hui
+
+**Bug Fix**: `NotificationBehavior` type requiert `shouldShowBanner` et `shouldShowList` en plus de `shouldShowAlert`.
+
+---
+
+### [2026-02-01] [0018] Leaderboard (Classement Ranked)
+
+**Commit**: `bc32922` | **PR**: #16
+
+**Actions**:
+- Classement global (all-time ranked XP) et hebdomadaire (reset lundi)
+- Table `weekly_ranked_xp` pour tracking hebdo
+- RPCs pour requêtes de classement
+- Section leaderboard dans l'onglet Personnage avec segment control
+
+**Fichiers créés**:
+- `supabase/migrations/008_leaderboard.sql`
+- `apps/mobile/src/services/leaderboard.service.ts`
+- `apps/mobile/src/components/LeaderboardCard.tsx`
+
+**Fichiers modifiés**:
+- `apps/mobile/app/(tabs)/character.tsx` (section leaderboard)
+- `apps/mobile/src/services/habitLogs.service.ts` (record weekly XP)
+- `apps/mobile/src/types/index.ts` (LeaderboardEntry)
+
+**Migration 008**:
+```sql
+-- Table weekly_ranked_xp
+CREATE TABLE weekly_ranked_xp (
+  id UUID PRIMARY KEY,
+  character_id UUID REFERENCES characters(id),
+  week_start DATE NOT NULL,  -- date_trunc('week', CURRENT_DATE)
+  xp_earned INTEGER DEFAULT 0,
+  UNIQUE(character_id, week_start)
+);
+
+-- RPC record_weekly_ranked_xp: upsert avec ON CONFLICT DO UPDATE
+-- RPC get_leaderboard(type, limit): ROW_NUMBER() OVER ranking
+-- RPC get_user_rank(character_id, type): position de l'utilisateur
+```
+
+**UI Leaderboard**:
+- Segment control Global / Hebdomadaire
+- Top 10 avec médailles (1er/2e/3e)
+- Ligne surlignée pour l'utilisateur courant
+- Position affichée si hors top 10
+
+---
+
+### [2026-02-01] [0019] Animations & Polish
+
+**Commit**: `e18084b` | **PR**: #17
+
+**Actions**:
+- Barres de progression XP animées (react-native-reanimated `withTiming`)
+- Animation spring sur checkbox/card de complétion d'habitude
+- Entrée staggered des cartes leaderboard (fade + slide)
+- Toast XP flottant après complétion d'habitude
+
+**Fichiers créés**:
+- `apps/mobile/src/components/XPToast.tsx`
+
+**Fichiers modifiés**:
+- `apps/mobile/src/components/XPProgressBar.tsx` (Animated.View + withTiming)
+- `apps/mobile/src/components/LeaderboardCard.tsx` (staggered entrance)
+- `apps/mobile/app/(tabs)/habits.tsx` (spring animations checkbox + card)
+- `apps/mobile/app/(tabs)/_layout.tsx` (XPToast dans layout)
+- `apps/mobile/src/stores/habitsStore.ts` (showXPToast calls)
+
+**XPToast** (pattern event emitter):
+```typescript
+// Utilisable depuis n'importe quel store/service
+import { showXPToast } from '../components/XPToast';
+showXPToast(20);                    // "+20 XP gagné"
+showXPToast(30, 'Ranked XP');       // "Ranked XP : +30 XP"
+
+// File d'attente: les toasts s'enchaînent si multiples
+// Animation: slide-down + scale spring + auto-dismiss 1.8s
+```
+
+**Animations implémentées**:
+| Composant | Animation | Lib |
+|-----------|-----------|-----|
+| XPProgressBar | Fill width smooth 600ms | `withTiming` + `Easing.out` |
+| HabitCompletionCard | Card scale 0.97 → 1 | `withSpring` + `withSequence` |
+| Checkbox | Scale 1.3 → 1 bounce | `withSpring` |
+| LeaderboardCard | Fade + translateY stagger 60ms | `withDelay` + `withTiming` |
+| XPToast | Slide-down + scale + fade-out | `withTiming` + `Easing.back` |
+
+---
+
+### [2026-02-02] [0020] Historique & Statistiques
+
+**Commit**: `a820915` | **PR**: #18
+
+**Actions**:
+- Nouvel onglet Stats (6e tab)
+- Service de requêtes agrégées pour statistiques
+- Heatmap d'activité 4 semaines (style GitHub)
+- Répartition par domaine avec barres
+- Historique récent des complétions
+
+**Fichiers créés**:
+- `apps/mobile/src/services/statistics.service.ts`
+- `apps/mobile/app/(tabs)/stats.tsx`
+
+**Fichiers modifiés**:
+- `apps/mobile/app/(tabs)/_layout.tsx` (ajout onglet Stats)
+
+**Service Statistics**:
+```typescript
+// statistics.service.ts
+- getDailyCompletions(characterId, days): complétions/jour (heatmap)
+- getDomainStats(characterId): répartition par domaine
+- getStatsSummary(characterId): totaux agrégés
+- getRecentCompletions(characterId, limit): historique récent
+
+// Pas de table supplémentaire - agrégation depuis habit_logs
+```
+
+**Écran Stats**:
+```
+┌─────────────────────────────┐
+│  [Complétions] [XP Total]   │  ← Summary cards (2x3 grid)
+│  [Streak]     [Moy./jour]  │
+│  [Best streak] [Ranked]     │
+├─────────────────────────────┤
+│  Activité (4 semaines)      │  ← Heatmap 7x4 grid
+│  L M M J V S D              │     Intensité couleur par complétions
+│  ■ ■ □ ■ ■ □ □             │
+│  ■ ■ ■ ■ □ □ □             │
+│  □ ■ ■ ■ ■ □ □             │
+│  ■ ■ ■ □ □ □ □             │
+│  Moins ■■■■ Plus            │     Légende
+├─────────────────────────────┤
+│  Répartition par domaine    │  ← Barres horizontales proportionnelles
+│  📖 Études    ████████ 12  │     Triées par nombre de complétions
+│  💪 Sport     ██████   8   │
+│  🧘 Méditation ████    5   │
+├─────────────────────────────┤
+│  Historique récent          │  ← 15 dernières complétions
+│  📖 Révisions  +20 XP      │     Date, heure, domaine, XP
+│  💪 Course     +30 XP 🏆   │     Badge ranked si applicable
+│  ...                        │
+└─────────────────────────────┘
+```
+
+**Pull-to-refresh** disponible pour actualiser les données.
+
 ---
 
 ## Prochaines Étapes
 
-### [0014] Équipement du Personnage
-- Service equipment.service.ts
-- Interface d'équipement dans character screen
-- Affichage visuel des items équipés
-
-### [0015+] À venir
-- Système de quêtes
-- Écran character avec équipements
-- Historique du journal dans character screen
-- Photos pour validation d'habitudes
+### [0021+] À venir
+- Design System / Thème cohérent
+- Vue historique du journal
+- Profil utilisateur éditable
+- Système de niveaux pour achievements
+- Animations de level-up
+- Mode sombre
 
 ---
 
-**Fin du TRACE - Dernière mise à jour: 2025-12-30**
+**Fin du TRACE - Dernière mise à jour: 2026-02-02**
