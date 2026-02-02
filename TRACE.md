@@ -2,7 +2,7 @@
 
 > Historique des décisions techniques et modifications importantes
 
-**Dernière mise à jour** : 2025-12-30
+**Dernière mise à jour** : 2026-02-02
 
 ---
 
@@ -12,6 +12,7 @@
 - [Phase 1 - Backend & Auth](#phase-1---backend--auth)
 - [Phase 2 - Core Loop MVP](#phase-2---core-loop-mvp)
 - [Phase 3 - Gamification](#phase-3---gamification)
+- [Maintenance - Corrections Dépendances](#maintenance---corrections-dépendances)
 - [Décisions Techniques](#décisions-techniques)
 - [Problèmes Rencontrés](#problèmes-rencontrés)
 
@@ -24,6 +25,7 @@
 **Commit**: `b7977d1`
 
 **Actions**:
+
 - Initialisation projet Expo + TypeScript
 - Configuration Expo Router pour la navigation
 - Structure de base des dossiers (`app/`, `src/`)
@@ -31,6 +33,7 @@
 - Documentation initiale (ARCHITECTURE, SETUP)
 
 **Stack Technique**:
+
 - React Native + Expo SDK 54
 - TypeScript
 - Expo Router (file-based routing)
@@ -45,15 +48,18 @@
 **Commit**: `286dc6d` | **PR**: #1
 
 **Actions**:
+
 - Création du projet Supabase
 - Configuration `.env` avec URLs et clés
 - Migration initiale du schéma de base de données
 
 **Fichiers créés**:
+
 - `supabase/migrations/001_initial_schema.sql`
 - `apps/mobile/src/services/supabase.ts`
 
 **Tables créées**:
+
 ```sql
 - characters (nom, level, xp, coins, humeur, streak, etc.)
 - domain_skills (5 domaines: études, sport, méditation, lecture, étirements)
@@ -73,6 +79,7 @@
 **Commit**: `85630c2` | **PR**: #2
 
 **Actions**:
+
 - Implémentation service d'authentification
 - Store Zustand pour gérer l'état auth
 - Écrans Login et Register
@@ -80,6 +87,7 @@
 - Persistance de session
 
 **Fichiers créés**:
+
 - `apps/mobile/src/services/auth.service.ts`
 - `apps/mobile/src/stores/authStore.ts`
 - `apps/mobile/app/(auth)/login.tsx`
@@ -89,6 +97,7 @@
 Utilisation de `supabase.auth.onAuthStateChange()` pour la persistance automatique de session au lieu de gérer manuellement les tokens.
 
 **Bugs Corrigés**:
+
 - **Navigation**: Fix logout redirect et back navigation (commit `2f9b49f`)
 - **Web Compatibility**: Ajout d'une utility `alert` cross-platform (commit `a5213a0`)
 - **Build**: Ajout `babel.config.js` pour react-native-reanimated (commit `8c06dca`)
@@ -101,15 +110,18 @@ Utilisation de `supabase.auth.onAuthStateChange()` pour la persistance automatiq
 **Commit**: `c9f0d76` | **PR**: #3
 
 **Actions**:
+
 - Création automatique du character au signup
 - Initialisation des 5 domain_skills à niveau 1
 - Intégration dans le flow d'inscription
 
 **Fichiers modifiés**:
+
 - `apps/mobile/src/services/character.service.ts` (fonction `createCharacter`)
 - `apps/mobile/src/stores/authStore.ts` (appel lors du signup)
 
 **Logique**:
+
 ```typescript
 // Au signup:
 1. Créer le user avec Supabase Auth
@@ -127,6 +139,7 @@ Utilisation de `supabase.auth.onAuthStateChange()` pour la persistance automatiq
 **Commit**: `b32e9a7` | **PR**: #4
 
 **Actions**:
+
 - Service character avec `getCharacter()` et `getDomainSkills()`
 - Store Zustand pour le character
 - Écran Home avec dashboard complet
@@ -134,13 +147,16 @@ Utilisation de `supabase.auth.onAuthStateChange()` pour la persistance automatiq
 - Barres de progression XP
 
 **Fichiers créés**:
+
 - `apps/mobile/src/stores/characterStore.ts`
 - `apps/mobile/src/utils/xpCalculator.ts`
 
 **Fichiers modifiés**:
+
 - `apps/mobile/app/(tabs)/home.tsx` (dashboard complet)
 
 **Formule XP → Level**:
+
 ```typescript
 XP requis pour level N = (N - 1) * 100
 Exemple:
@@ -150,6 +166,7 @@ Exemple:
 ```
 
 **Bugs Corrigés**:
+
 - **XP Calculation**: Fix calcul XP pour level 1 (commit `134438b`)
 - **Dependencies**: Upgrade dependencies (commit `134438b`)
 
@@ -160,24 +177,28 @@ Exemple:
 **Commit**: `32120f0` | **PR**: #5
 
 **Actions**:
+
 - Service habits avec CRUD complet
 - Store Zustand pour les habitudes
 - Écran de gestion des habitudes
 - Formulaire de création/édition
 
 **Fichiers créés**:
+
 - `apps/mobile/src/services/habits.service.ts`
 - `apps/mobile/src/stores/habitsStore.ts`
 - `apps/mobile/app/(tabs)/habits/index.tsx`
 - `apps/mobile/app/(tabs)/habits/new.tsx`
 
 **Fonctionnalités**:
+
 - Créer une habitude (nom, domaine, difficulté)
 - Modifier une habitude existante
 - Supprimer une habitude
 - Lister toutes les habitudes
 
 **Difficultés**:
+
 ```typescript
 'facile'     → 10 XP, 1 coin
 'moyen'      → 20 XP, 2 coins
@@ -191,6 +212,7 @@ Exemple:
 **Commit**: `5323d8e` | **PR**: #6
 
 **Actions**:
+
 - Service habitLogs pour la complétion
 - Logique de toggle (cocher/décocher)
 - Calcul et attribution XP/coins
@@ -198,10 +220,12 @@ Exemple:
 - Prévention des doublons (1 fois par jour)
 
 **Fichiers créés**:
+
 - `apps/mobile/src/services/habitLogs.service.ts`
 - `supabase/migrations/002_habit_log_trigger.sql`
 
 **Migration 002 - Trigger**:
+
 ```sql
 -- Trigger pour mettre à jour last_activity_date automatiquement
 CREATE OR REPLACE FUNCTION update_last_activity_date()
@@ -221,12 +245,14 @@ CREATE TRIGGER habit_log_update_activity
 ```
 
 **RPC Functions**:
+
 ```sql
 -- add_character_rewards: ajoute XP et coins
 -- add_domain_skill_xp: ajoute XP au domaine spécifique
 ```
 
 **Flow de Complétion**:
+
 ```
 1. Vérifier si déjà complété aujourd'hui
 2. Calculer XP et coins selon difficulté
@@ -245,19 +271,23 @@ CREATE TRIGGER habit_log_update_activity
 **Commit**: `70a3335` | **PR**: #7
 
 **Actions**:
+
 - Utilitaire de calcul de streak
 - Intégration avec complétion d'habitudes
 - Bonus aux milestones (7, 14, 30, 60, 100 jours)
 - Affichage dans le dashboard
 
 **Fichiers créés**:
+
 - `apps/mobile/src/utils/streakCalculator.ts`
 
 **Fichiers modifiés**:
+
 - `apps/mobile/src/services/character.service.ts` (`updateStreak`)
 - `apps/mobile/src/services/habitLogs.service.ts` (intégration)
 
 **Logique de Streak**:
+
 ```typescript
 // Règles:
 - Si lastActivityDate est null → streak = 1
@@ -276,9 +306,11 @@ CREATE TRIGGER habit_log_update_activity
 **Problèmes Rencontrés et Solutions**:
 
 #### Bug #1: Race Condition avec Trigger
+
 **Problème**: Le streak ne s'incrémentait pas car le trigger DB mettait à jour `last_activity_date` AVANT que `updateStreak()` ne lise la valeur.
 
 **Solution** (commit `e478169`):
+
 ```typescript
 // Lire les valeurs du character AVANT de créer le habit_log
 const character = await supabase.from('characters')
@@ -298,9 +330,11 @@ await updateStreak(characterId, {
 ```
 
 #### Bug #2: Streak=0 avec Activité du Même Jour
+
 **Problème**: Quand `currentStreak = 0` mais `lastActivityDate = aujourd'hui` (plusieurs habitudes complétées le même jour), le streak restait à 0.
 
 **Solution** (commit `91b11ea`):
+
 ```typescript
 // Dans streakCalculator.ts
 if (daysDifference === 0) {
@@ -314,9 +348,87 @@ if (daysDifference === 0) {
 ```
 
 **Tests Validés**:
+
 - ✅ Streak passe de 0 à 1 à la première complétion
 - ✅ Streak reste à 1 si plusieurs habitudes le même jour
 - ✅ Calcul correct (intégré dans le code TypeScript)
+
+---
+
+## Maintenance - Corrections Dépendances
+
+### [2026-02-02] Résolution du Mismatch Worklets
+
+**Problème**:
+L'application ne compilait pas avec l'erreur:
+
+```
+[WorkletsError: [Worklets] Mismatch between JavaScript part and native part of Worklets (0.7.2 vs 0.5.1)]
+```
+
+**Cause Racine**:
+
+- `react-native-reanimated` 4.1.1 inclus dans le projet
+- Expo Go n'a pas accès à la version native correcte de react-native-worklets
+- Incompatibilité avec Expo SDK 54
+
+**Solution Appliquée**:
+
+#### 1. Mise à jour des dépendances expo
+
+```bash
+npm install expo@~54.0.33 expo-router@~6.0.23
+```
+
+Versions recommandées par le warnings d'Expo.
+
+#### 2. Réinstallation complète des node_modules
+
+```bash
+rm -rf node_modules && npm install
+```
+
+#### 3. Nettoyage Watchman
+
+```bash
+watchman watch-del '/Users/antoinechiausa/Desktop/GrowGame'
+watchman watch-project '/Users/antoinechiausa/Desktop/GrowGame'
+```
+
+#### 4. Remplacement des animations Reanimated par Animated natif
+
+**Fichiers modifiés**:
+
+1. **XPToast.tsx** (Notifications XP flottantes)
+   - Suppression: `import Animated from 'react-native-reanimated'`
+   - Ajout: `import { Animated } from 'react-native'`
+   - Remplacement: `useSharedValue()` → `new Animated.Value()`
+   - Animations: `withTiming()` → `Animated.timing()`
+
+2. **LeaderboardCard.tsx** (Rangées du classement)
+   - Animations d'entrée avec délai pour chaque rangée
+   - Parallélisation: opacity et translateY en même temps
+
+3. **XPProgressBar.tsx** (Barre de progression)
+   - Interpolation native de la largeur
+   - Animation smooth du remplissage
+
+4. **habits.tsx** (Animations de coches)
+   - Spring animations pour feedback utilisateur
+   - Check bounce + card squish sur complétion
+
+**Résultat**:
+✅ Application compile sans erreur Worklets
+✅ Animations toujours fonctionnelles
+✅ Compatible avec Expo Go sans development build
+✅ Code plus portable (utilise API React Native standard)
+
+**Décision Technique**:
+Utilisation de `React.Animated` (API standard) au lieu de `react-native-reanimated`.
+
+- ✅ Élimine les dépendances natives problématiques
+- ✅ Suffit pour les animations d'UI non-complexes
+- ✅ Meilleure compatibilité
 
 ---
 
@@ -325,6 +437,7 @@ if (daysDifference === 0) {
 ### Architecture
 
 **Monorepo Structure**:
+
 ```
 GrowGame/
 ├── apps/
@@ -335,18 +448,21 @@ GrowGame/
 ```
 
 **State Management**: Zustand
+
 - Plus simple que Redux
 - TypeScript-first
 - Pas de boilerplate
 - Store par domaine (auth, character, habits)
 
 **Backend**: Supabase
+
 - Auth intégrée
 - PostgreSQL + RLS
 - Real-time capabilities (future)
 - File storage (future pour photos)
 
 **Formules de jeu**:
+
 - XP par level: `(level - 1) * 100`
 - XP par difficulté: facile=10, moyen=20, difficile=30
 - Coins par difficulté: facile=1, moyen=2, difficile=3
@@ -354,6 +470,7 @@ GrowGame/
 ### Navigation
 
 **Expo Router (file-based)**:
+
 ```
 app/
 ├── (auth)/              # Stack non-authentifié
@@ -370,14 +487,17 @@ app/
 ### Base de Données
 
 **RLS (Row Level Security)**:
+
 - Chaque user ne peut accéder qu'à ses propres données
 - Politique: `auth.uid() = user_id`
 
 **Triggers**:
+
 - Auto-update de `last_activity_date` à chaque complétion
 - Évite les appels manuels
 
 **RPC Functions**:
+
 - Atomicité des opérations complexes
 - `add_character_rewards(characterId, xp, coins)`
 - `add_domain_skill_xp(characterId, domain, xp)`
@@ -389,11 +509,13 @@ app/
 ### 1. React Native Reanimated Build Error
 
 **Problème**: Erreur de bundler au démarrage de l'app
+
 ```
 Unable to resolve module react-native-reanimated
 ```
 
 **Solution** (commit `8c06dca`):
+
 - Ajout de `babel.config.js` avec plugin reanimated
 - Installation de `react-native-worklets-core`
 
@@ -404,6 +526,7 @@ Unable to resolve module react-native-reanimated
 **Problème**: Après logout, l'app ne redirige pas vers login
 
 **Solution** (commit `2f9b49f`):
+
 - Utilisation de `router.replace('/login')` au lieu de `navigate`
 - Gestion correcte du stack navigation
 
@@ -414,6 +537,7 @@ Unable to resolve module react-native-reanimated
 **Problème**: `Alert.alert()` n'existe pas sur le web
 
 **Solution** (commit `a5213a0`):
+
 - Création d'une utility `showAlert()` cross-platform
 - Utilise `Alert` sur mobile, `window.alert()` sur web
 
@@ -424,6 +548,7 @@ Unable to resolve module react-native-reanimated
 **Problème**: Trigger DB met à jour `last_activity_date` avant la lecture du streak
 
 **Solution** (commit `e478169`):
+
 - Lecture des valeurs AVANT création du log
 - Passage explicite des valeurs à `updateStreak()`
 
@@ -434,6 +559,7 @@ Unable to resolve module react-native-reanimated
 **Problème**: Plusieurs complétions le même jour ne démarrent pas le streak
 
 **Solution** (commit `91b11ea`):
+
 - Vérification spéciale: si `daysDifference === 0` ET `currentStreak === 0`
 - Alors démarrer le streak à 1
 
@@ -444,14 +570,17 @@ Unable to resolve module react-native-reanimated
 **Commit**: `8d08a30` | **PR**: #8
 
 **Actions**:
+
 - Implémentation du decay des compétences après 7 jours d'inactivité
 - Correction du bug d'affichage des barres de progression XP
 - Notification de decay à l'utilisateur
 
 **Fichiers créés**:
+
 - `apps/mobile/src/utils/decayCalculator.ts`
 
 **Fichiers modifiés**:
+
 - `apps/mobile/src/services/character.service.ts` (`applyDecayToAllDomains`)
 - `apps/mobile/src/stores/characterStore.ts` (intégration decay check)
 - `apps/mobile/app/(tabs)/home.tsx` (alerte decay)
@@ -459,6 +588,7 @@ Unable to resolve module react-native-reanimated
 - `apps/mobile/src/components/DomainSkillCard.tsx` (bug fix)
 
 **Logique de Decay**:
+
 ```typescript
 // Règles:
 - Si last_activity_at est null → pas de decay (jamais pratiqué)
@@ -473,6 +603,7 @@ Niveau 3 (200 XP) → 8 jours sans activité → Niveau 1 (0 XP)
 ```
 
 **Flow de Decay**:
+
 ```
 1. Au chargement du character (characterStore.loadCharacter)
 2. Appel de applyDecayToAllDomains(characterId)
@@ -488,11 +619,13 @@ Niveau 3 (200 XP) → 8 jours sans activité → Niveau 1 (0 XP)
 **Problèmes Rencontrés et Solutions**:
 
 #### Bug Fix: Barres de Progression XP Incorrectes
+
 **Problème**: Les barres de progression affichaient des valeurs incorrectes. Par exemple, avec 150 XP au niveau 1, l'affichage montrait "150/50 XP" au lieu de "100/150 XP".
 
 **Cause**: Les composants utilisaient `xpForLevel(currentLevel)` comme cible, alors qu'il fallait utiliser `xpForLevel(currentLevel + 1)`.
 
 **Solution** (commit `8d08a30`):
+
 ```typescript
 // Avant (incorrect):
 const xpNeeded = xpForLevel(skill.level); // 50 pour level 1
@@ -506,6 +639,7 @@ const xpNeededForNextLevel = xpAtNextLevel - xpAtCurrentLevel;
 ```
 
 **Formule XP rappel**:
+
 ```
 xpForLevel(n) = (100 * n²) / 2
 - Niveau 1: 0-199 XP (nécessite 200 XP pour passer niveau 2)
@@ -520,14 +654,17 @@ xpForLevel(n) = (100 * n²) / 2
 **Commit**: `53a69d0` | **PR**: #9
 
 **Actions**:
+
 - Implémentation du système d'humeur dynamique basé sur l'activité
 - Ajout du mood 'sad' au type Mood
 - Mise à jour automatique après complétion ou au chargement
 
 **Fichiers créés**:
+
 - `apps/mobile/src/utils/moodCalculator.ts`
 
 **Fichiers modifiés**:
+
 - `apps/mobile/src/types/index.ts` (ajout 'sad' au type Mood)
 - `apps/mobile/src/constants/game.ts` (ajout emoji sad 😢)
 - `apps/mobile/src/services/character.service.ts` (`updateMood`)
@@ -536,6 +673,7 @@ xpForLevel(n) = (100 * n²) / 2
 - `apps/mobile/app/(tabs)/home.tsx` (affichage mood card)
 
 **Logique de Mood**:
+
 ```typescript
 // Règles (par priorité):
 1. Sad 😢: 3+ jours sans activité (priorité la plus haute)
@@ -551,6 +689,7 @@ xpForLevel(n) = (100 * n²) / 2
 ```
 
 **Flow de Mood Update**:
+
 ```
 1. Après complétion d'habitude (habitLogs.service):
    - completeHabit() → updateStreak() → updateMood() → nouveau mood calculé
@@ -565,6 +704,7 @@ xpForLevel(n) = (100 * n²) / 2
 ```
 
 **Affichage**:
+
 - Nouvelle carte "Mood" sur home.tsx
 - Affiche emoji 48px + description
 - Messages contextuels selon le mood
@@ -576,22 +716,26 @@ xpForLevel(n) = (100 * n²) / 2
 **Commit**: `3051083` | **PR**: #10
 
 **Actions**:
+
 - Implémentation du système de journal quotidien optionnel
 - Modal affiché après complétion d'habitude
 - Bonus de +5 XP pour écriture de journal
 - Stockage des entrées liées aux habit_logs
 
 **Fichiers créés**:
+
 - `supabase/migrations/004_journal_entries.sql`
 - `apps/mobile/src/services/journal.service.ts`
 - `apps/mobile/src/components/JournalPromptModal.tsx`
 
 **Fichiers modifiés**:
+
 - `apps/mobile/src/types/index.ts` (ajout type JournalEntry)
 - `apps/mobile/src/stores/habitsStore.ts` (état modal)
 - `apps/mobile/app/(tabs)/habits.tsx` (intégration modal)
 
 **Schéma Database**:
+
 ```sql
 CREATE TABLE journal_entries (
   id UUID PRIMARY KEY,
@@ -609,6 +753,7 @@ CREATE TABLE journal_entries (
 ```
 
 **Logique de Journal**:
+
 ```typescript
 // Flow après complétion d'habitude:
 1. Habit complété → XP/coins attribués
@@ -628,6 +773,7 @@ CREATE TABLE journal_entries (
 ```
 
 **Fonctionnalités**:
+
 - Modal optionnel avec TextInput multiline
 - Compteur de caractères (0/1000)
 - Boutons "Passer" et "Enregistrer"
@@ -645,28 +791,33 @@ Vue historique du journal dans character screen avec affichage des entrées, hab
 **Commit**: `cd0b5f9` | **PR**: #11
 
 **Actions**:
+
 - Implémentation du système de boutique
 - Catalogue d'items avec cosmétiques, décorations et jokers
 - Système d'achat avec validation de coins
 - Gestion de l'inventaire utilisateur
 
 **Fichiers créés**:
+
 - `supabase/migrations/005_populate_shop_items.sql`
 - `apps/mobile/src/services/shop.service.ts`
 - `apps/mobile/src/stores/shopStore.ts`
 
 **Fichiers modifiés**:
+
 - `apps/mobile/app/(tabs)/shop.tsx` (refonte complète)
 - `apps/mobile/src/stores/authStore.ts` (clear shop on logout)
 
 **Migration 005 - Shop Items**:
 Ajout de 34 items variés :
+
 - **Cosmétiques** (25 items) : 5 slots (couvre_chef, haut, bas, chaussures, accessoire)
   - Rareté variée : Common (50-120 coins), Rare (150-300), Epic (350-500), Legendary (800-1200)
 - **Décorations** (6 items) : Trophées, plantes, affiches, statues
 - **Jokers** (3 items) : Protection streak, double XP
 
 **Services créés**:
+
 ```typescript
 // shop.service.ts
 - getShopItems(): Fetch tous les items disponibles
@@ -681,6 +832,7 @@ Ajout de 34 items variés :
 ```
 
 **Store Zustand**:
+
 ```typescript
 // shopStore.ts
 - State: shopItems, userItems, isLoading, isPurchasing, error
@@ -692,6 +844,7 @@ Ajout de 34 items variés :
 ```
 
 **Interface Utilisateur**:
+
 ```typescript
 // shop.tsx
 - Header avec balance de coins en temps réel
@@ -710,6 +863,7 @@ Ajout de 34 items variés :
 ```
 
 **Flow d'achat**:
+
 ```
 1. User clique "Acheter" sur un item
 2. Validation client:
@@ -732,15 +886,19 @@ Ajout de 34 items variés :
 **Problèmes Résolus**:
 
 #### Bug: Prix non affichés
+
 **Cause**: Mismatch snake_case (DB) vs camelCase (TypeScript)
+
 - DB retourne `price_coins`, code accède `priceCoins`
 
 **Solution** (commit `62271ea`):
+
 - Ajout fonctions de transformation dans service
 - `transformShopItem()` convertit tous les champs
 - Application sur tous les endpoints
 
 **Décisions Techniques**:
+
 - **Transformation layer**: Services transforment DB → TS types
 - **Optimistic UI**: Pas de rafraîchissement pessimiste
 - **Local ownership check**: Évite appels DB inutiles
@@ -754,6 +912,7 @@ Ajout de 34 items variés :
 **Commits**: `dc52a72`, `9f43d8b` | **PR**: TBD
 
 **Actions**:
+
 - Implémentation complète du système d'équipement
 - Gestion des slots d'équipement (5 slots pour cosmétiques)
 - Interface de gestion avec modal par slot
@@ -761,15 +920,18 @@ Ajout de 34 items variés :
 - Refonte de l'écran personnage avec données réelles
 
 **Fichiers créés**:
+
 - `apps/mobile/src/services/equipment.service.ts`
 - `apps/mobile/src/components/EquipmentModal.tsx`
 
 **Fichiers modifiés**:
+
 - `apps/mobile/src/stores/characterStore.ts` (ajout equipment state)
 - `apps/mobile/app/(tabs)/character.tsx` (refonte complète)
 - `apps/mobile/app/(tabs)/shop.tsx` (bouton équiper)
 
 **Service Equipment**:
+
 ```typescript
 // equipment.service.ts
 - getEquippedItems(characterId): Fetch avec JOIN shop_items
@@ -786,6 +948,7 @@ Ajout de 34 items variés :
 ```
 
 **Store Updates**:
+
 ```typescript
 // characterStore.ts - Ajouts
 - State:
@@ -799,6 +962,7 @@ Ajout de 34 items variés :
 ```
 
 **Equipment Modal** (`EquipmentModal.tsx`):
+
 ```typescript
 - Props: visible, slot, currentEquipment, characterId, userId
 - Actions: onClose, onEquip, onUnequip
@@ -815,6 +979,7 @@ Ajout de 34 items variés :
 ```
 
 **Character Screen Refonte**:
+
 ```typescript
 // character.tsx - Changements majeurs
 AVANT: Placeholder avec données statiques
@@ -836,6 +1001,7 @@ APRÈS: Données dynamiques du characterStore
 ```
 
 **Shop Integration**:
+
 ```typescript
 // shop.tsx - Amélioration UX
 - Import equipItem du characterStore
@@ -847,6 +1013,7 @@ APRÈS: Données dynamiques du characterStore
 ```
 
 **Pattern UPSERT**:
+
 ```sql
 -- Atomic slot replacement
 INSERT INTO equipments (character_id, slot, item_id)
@@ -856,6 +1023,7 @@ DO UPDATE SET item_id = EXCLUDED.item_id
 ```
 
 **Validation Ownership**:
+
 ```typescript
 // Vérification côté serveur
 1. Check item existe et type === 'cosmetic'
@@ -865,17 +1033,19 @@ DO UPDATE SET item_id = EXCLUDED.item_id
 ```
 
 **Décisions Techniques**:
+
 - **Store unique**: Equipment dans characterStore plutôt que store séparé
-  * Raison: Équipements sont des attributs du personnage
+  - Raison: Équipements sont des attributs du personnage
 - **Modal vs Screen**: Modal pour sélection rapide
-  * Raison: Action contextuelle, pas de navigation lourde
+  - Raison: Action contextuelle, pas de navigation lourde
 - **UPSERT pattern**: Garantit un seul item par slot
-  * Raison: Évite race conditions, opération atomique
+  - Raison: Évite race conditions, opération atomique
 - **Transformation layer**: Consistency avec shop.service.ts
 - **Eager loading**: Equipment chargé avec character
 - **Shop integration**: Équipement direct pour meilleure UX
 
 **Flow d'équipement**:
+
 ```
 Option 1 - Depuis Character Screen:
 1. Click "Gérer" sur un slot
@@ -900,6 +1070,7 @@ Déséquipement:
 ```
 
 **Tests Manuels - Tous Passés**:
+
 - ✅ Chargement des 5 slots d'équipement
 - ✅ Achat + équipement depuis shop
 - ✅ Équipement via modal sur character screen
@@ -911,6 +1082,7 @@ Déséquipement:
 - ✅ Validation ownership côté serveur
 
 **Améliorations Futures** (Hors Scope):
+
 - Visual character preview avec items (sprite/avatar)
 - Equipment sets avec bonus stats
 - Item upgrade system
@@ -921,20 +1093,26 @@ Déséquipement:
 ## Architecture Évolutive
 
 ### Services
+
 Chaque domaine métier a son service:
+
 - `auth.service.ts` - Authentification
 - `character.service.ts` - Gestion du personnage
 - `habits.service.ts` - CRUD habitudes
 - `habitLogs.service.ts` - Complétion et historique
 
 ### Stores (Zustand)
+
 Un store par domaine d'état:
+
 - `authStore.ts` - User, session
 - `characterStore.ts` - Character, domain_skills
 - `habitsStore.ts` - Habits, today's logs
 
 ### Utils
+
 Logique métier pure (sans dépendances):
+
 - `xpCalculator.ts` - Formules XP → Level
 - `streakCalculator.ts` - Logique de streak
 - `decayCalculator.ts` - Logique de decay
@@ -945,11 +1123,13 @@ Logique métier pure (sans dépendances):
 ## Prochaines Étapes
 
 ### [0014] Équipement du Personnage
+
 - Service equipment.service.ts
 - Interface d'équipement dans character screen
 - Affichage visuel des items équipés
 
 ### [0015+] À venir
+
 - Système de quêtes
 - Écran character avec équipements
 - Historique du journal dans character screen
@@ -957,4 +1137,4 @@ Logique métier pure (sans dépendances):
 
 ---
 
-**Fin du TRACE - Dernière mise à jour: 2025-12-30**
+**Fin du TRACE - Dernière mise à jour: 2026-02-02**

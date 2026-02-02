@@ -10,14 +10,7 @@
  */
 
 import { useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  withDelay,
-  Easing,
-} from 'react-native-reanimated';
+import { View, Text, StyleSheet, Animated } from 'react-native';
 
 interface LeaderboardCardProps {
   rank: number;
@@ -42,37 +35,38 @@ export function LeaderboardCard({
   isCurrentUser,
   index = 0,
 }: LeaderboardCardProps) {
-  const opacity = useSharedValue(0);
-  const translateY = useSharedValue(12);
+  const opacity = new Animated.Value(0);
+  const translateY = new Animated.Value(12);
 
   useEffect(() => {
-    opacity.value = withDelay(
-      index * 60,
-      withTiming(1, { duration: 300, easing: Easing.out(Easing.cubic) })
-    );
-    translateY.value = withDelay(
-      index * 60,
-      withTiming(0, { duration: 300, easing: Easing.out(Easing.cubic) })
-    );
+    Animated.parallel([
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: 300,
+        delay: index * 60,
+        useNativeDriver: true,
+      }),
+      Animated.timing(translateY, {
+        toValue: 0,
+        duration: 300,
+        delay: index * 60,
+        useNativeDriver: true,
+      }),
+    ]).start();
   }, [index]);
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    opacity: opacity.value,
-    transform: [{ translateY: translateY.value }],
-  }));
+  const animatedStyle = {
+    opacity,
+    transform: [{ translateY }],
+  };
 
   return (
     <Animated.View style={[styles.row, isCurrentUser && styles.rowCurrentUser, animatedStyle]}>
       <View style={styles.rankContainer}>
-        <Text style={styles.rankText}>
-          {RANK_EMOJI[rank] || `#${rank}`}
-        </Text>
+        <Text style={styles.rankText}>{RANK_EMOJI[rank] || `#${rank}`}</Text>
       </View>
       <View style={styles.infoContainer}>
-        <Text
-          style={[styles.name, isCurrentUser && styles.nameCurrentUser]}
-          numberOfLines={1}
-        >
+        <Text style={[styles.name, isCurrentUser && styles.nameCurrentUser]} numberOfLines={1}>
           {characterName}
           {isCurrentUser ? ' (toi)' : ''}
         </Text>

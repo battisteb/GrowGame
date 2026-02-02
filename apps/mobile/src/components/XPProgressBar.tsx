@@ -5,8 +5,7 @@
  */
 
 import { useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing } from 'react-native-reanimated';
+import { View, Text, StyleSheet, Animated } from 'react-native';
 import { xpForLevel } from '../constants/game';
 
 interface XPProgressBarProps {
@@ -21,18 +20,22 @@ export function XPProgressBar({ currentLevel, currentXP }: XPProgressBarProps) {
   const xpNeededForNextLevel = xpAtNextLevel - xpAtCurrentLevel;
   const progress = Math.min(Math.max(0, (xpInThisLevel / xpNeededForNextLevel) * 100), 100);
 
-  const animatedWidth = useSharedValue(0);
+  const animatedWidth = new Animated.Value(0);
 
   useEffect(() => {
-    animatedWidth.value = withTiming(progress, {
+    Animated.timing(animatedWidth, {
+      toValue: progress,
       duration: 600,
-      easing: Easing.out(Easing.cubic),
-    });
+      useNativeDriver: false,
+    }).start();
   }, [progress]);
 
-  const animatedBarStyle = useAnimatedStyle(() => ({
-    width: `${animatedWidth.value}%`,
-  }));
+  const animatedBarStyle = {
+    width: animatedWidth.interpolate({
+      inputRange: [0, 100],
+      outputRange: ['0%', '100%'],
+    }),
+  };
 
   return (
     <View style={styles.container}>

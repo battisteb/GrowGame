@@ -13,13 +13,8 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  Animated,
 } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withSequence,
-} from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useCharacterStore } from '../../src/stores/characterStore';
 import { useHabitsStore } from '../../src/stores/habitsStore';
@@ -67,11 +62,7 @@ export default function HabitsScreen() {
     }
   }, [character?.id, loadHabits, loadTodayLogs]);
 
-  const handleAddHabit = async (data: {
-    domain: Domain;
-    name: string;
-    difficulty: Difficulty;
-  }) => {
+  const handleAddHabit = async (data: { domain: Domain; name: string; difficulty: Difficulty }) => {
     if (!character?.id) return;
 
     const success = await addHabit({
@@ -101,7 +92,7 @@ export default function HabitsScreen() {
 
   const handleDeleteHabit = (habitId: string, habitName: string) => {
     showConfirmAlert(
-      'Supprimer l\'habitude',
+      "Supprimer l'habitude",
       `Voulez-vous vraiment supprimer "${habitName}" ?`,
       async () => {
         const success = await removeHabit(habitId);
@@ -155,12 +146,7 @@ export default function HabitsScreen() {
       return;
     }
 
-    const result = await completeHabitRanked(
-      selectedHabit,
-      character.id,
-      user.id,
-      photoUri
-    );
+    const result = await completeHabitRanked(selectedHabit, character.id, user.id, photoUri);
 
     setPhotoModalVisible(false);
     setSelectedHabit(null);
@@ -169,11 +155,9 @@ export default function HabitsScreen() {
       await refreshCharacter();
     } else {
       // Show error alert
-      Alert.alert(
-        'Erreur de vérification',
-        result.error || 'La photo n\'a pas pu être vérifiée',
-        [{ text: 'OK' }]
-      );
+      Alert.alert('Erreur de vérification', result.error || "La photo n'a pas pu être vérifiée", [
+        { text: 'OK' },
+      ]);
     }
   };
 
@@ -242,10 +226,7 @@ export default function HabitsScreen() {
             {completedCount} / {totalCount} complétée{totalCount > 1 ? 's' : ''}
           </Text>
         </View>
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={() => setIsFormVisible(true)}
-        >
+        <TouchableOpacity style={styles.addButton} onPress={() => setIsFormVisible(true)}>
           <Text style={styles.addButtonText}>+ Ajouter</Text>
         </TouchableOpacity>
       </View>
@@ -258,10 +239,7 @@ export default function HabitsScreen() {
           <Text style={styles.emptySubtitle}>
             Créez votre première habitude pour commencer à progresser !
           </Text>
-          <TouchableOpacity
-            style={styles.emptyButton}
-            onPress={() => setIsFormVisible(true)}
-          >
+          <TouchableOpacity style={styles.emptyButton} onPress={() => setIsFormVisible(true)}>
             <Text style={styles.emptyButtonText}>Créer une habitude</Text>
           </TouchableOpacity>
         </View>
@@ -361,28 +339,52 @@ function HabitCompletionCard({
     3: '⭐⭐⭐',
   };
 
-  const checkScale = useSharedValue(1);
-  const cardScale = useSharedValue(1);
+  const checkScale = new Animated.Value(1);
+  const cardScale = new Animated.Value(1);
 
   const handleToggle = () => {
-    checkScale.value = withSequence(
-      withSpring(1.3, { damping: 4, stiffness: 300 }),
-      withSpring(1, { damping: 8, stiffness: 200 })
-    );
-    cardScale.value = withSequence(
-      withSpring(0.97, { damping: 10, stiffness: 400 }),
-      withSpring(1, { damping: 8, stiffness: 200 })
-    );
+    // Animate check
+    Animated.sequence([
+      Animated.spring(checkScale, {
+        toValue: 1.3,
+        friction: 4,
+        tension: 300,
+        useNativeDriver: true,
+      }),
+      Animated.spring(checkScale, {
+        toValue: 1,
+        friction: 8,
+        tension: 200,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    // Animate card
+    Animated.sequence([
+      Animated.spring(cardScale, {
+        toValue: 0.97,
+        friction: 10,
+        tension: 400,
+        useNativeDriver: true,
+      }),
+      Animated.spring(cardScale, {
+        toValue: 1,
+        friction: 8,
+        tension: 200,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
     onToggle();
   };
 
-  const checkAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: checkScale.value }],
-  }));
+  const checkAnimatedStyle = {
+    transform: [{ scale: checkScale }],
+  };
 
-  const cardAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: cardScale.value }],
-  }));
+  const cardAnimatedStyle = {
+    transform: [{ scale: cardScale }],
+  };
 
   return (
     <Animated.View
@@ -400,19 +402,12 @@ function HabitCompletionCard({
           <Text style={styles.domainEmoji}>{domainInfo.emoji}</Text>
         </View>
         <View style={styles.habitInfo}>
-          <Text
-            style={[
-              styles.habitName,
-              isCompleted && styles.habitNameCompleted,
-            ]}
-          >
+          <Text style={[styles.habitName, isCompleted && styles.habitNameCompleted]}>
             {habit.name}
           </Text>
           <View style={styles.habitMeta}>
             <Text style={styles.domainName}>{domainInfo.name}</Text>
-            <Text style={styles.difficulty}>
-              {DIFFICULTY_STARS[habit.difficulty]}
-            </Text>
+            <Text style={styles.difficulty}>{DIFFICULTY_STARS[habit.difficulty]}</Text>
           </View>
         </View>
       </View>
@@ -440,11 +435,7 @@ function HabitCompletionCard({
         {/* Completion checkbox */}
         <TouchableOpacity onPress={handleToggle}>
           <Animated.View
-            style={[
-              styles.checkbox,
-              isCompleted && styles.checkboxCompleted,
-              checkAnimatedStyle,
-            ]}
+            style={[styles.checkbox, isCompleted && styles.checkboxCompleted, checkAnimatedStyle]}
           >
             {isCompleted && <Text style={styles.checkMark}>✓</Text>}
           </Animated.View>

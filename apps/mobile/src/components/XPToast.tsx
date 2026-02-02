@@ -6,16 +6,7 @@
  */
 
 import { useEffect, useState, useCallback } from 'react';
-import { Text, StyleSheet } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  withSequence,
-  withDelay,
-  Easing,
-  runOnJS,
-} from 'react-native-reanimated';
+import { Text, StyleSheet, Animated, View } from 'react-native';
 
 interface ToastData {
   xp: number;
@@ -35,9 +26,9 @@ export function XPToast() {
   const [queue, setQueue] = useState<ToastData[]>([]);
   const [current, setCurrent] = useState<ToastData | null>(null);
 
-  const translateY = useSharedValue(-80);
-  const opacity = useSharedValue(0);
-  const scale = useSharedValue(0.8);
+  const translateY = new Animated.Value(-80);
+  const opacity = new Animated.Value(0);
+  const scale = new Animated.Value(0.8);
 
   const processNext = useCallback(() => {
     setQueue((prev) => {
@@ -73,40 +64,73 @@ export function XPToast() {
   useEffect(() => {
     if (!current) return;
 
-    // Slide in
-    translateY.value = withTiming(0, { duration: 300, easing: Easing.out(Easing.back(1.2)) });
-    opacity.value = withTiming(1, { duration: 200 });
-    scale.value = withSequence(
-      withTiming(1.1, { duration: 200, easing: Easing.out(Easing.cubic) }),
-      withTiming(1, { duration: 150 })
-    );
+    // Reset animations
+    translateY.setValue(-80);
+    opacity.setValue(0);
+    scale.setValue(0.8);
+
+    // Slide in and scale
+    Animated.parallel([
+      Animated.timing(translateY, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+      Animated.sequence([
+        Animated.timing(scale, {
+          toValue: 1.1,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(scale, {
+          toValue: 1,
+          duration: 150,
+          useNativeDriver: true,
+        }),
+      ]),
+    ]).start();
 
     // Slide out after delay
     const timeout = setTimeout(() => {
-      translateY.value = withTiming(-80, { duration: 300, easing: Easing.in(Easing.cubic) });
-      opacity.value = withDelay(100, withTiming(0, {
-        duration: 200,
-      }));
-      // Clear current after animation
-      setTimeout(() => {
+      Animated.parallel([
+        Animated.timing(translateY, {
+          toValue: -80,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacity, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
         setCurrent(null);
-      }, 400);
+      });
     }, 1800);
 
     return () => clearTimeout(timeout);
-  }, [current]);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateY: translateY.value },
-      { scale: scale.value },
-    ],
-    opacity: opacity.value,
-  }));
+  }, [current, translateY, opacity, scale]);
 
   if (!current) return null;
 
   const label = current.label || 'XP gagné';
+
+  const animatedStyle = {
+    transform: [
+      {
+        translateY,
+      },
+      {
+        scale,
+      },
+    ],
+    opacity,
+  };
 
   return (
     <Animated.View style={[styles.container, animatedStyle]} pointerEvents="none">

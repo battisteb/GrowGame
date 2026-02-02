@@ -2,7 +2,7 @@
 
 > Roadmap et suivi du développement
 
-**Dernière mise à jour** : 2025-12-30
+**Dernière mise à jour** : 2026-02-02
 
 ---
 
@@ -11,6 +11,7 @@
 ### Objectif final
 
 Une application mobile de gamification de la discipline personnelle où :
+
 - L'utilisateur valide des habitudes quotidiennes dans 5 domaines
 - Son personnage évolue (XP, niveaux, apparence)
 - La progression est récompensée (cosmétiques, streak bonus)
@@ -19,6 +20,7 @@ Une application mobile de gamification de la discipline personnelle où :
 ### Principe directeur
 
 **Pragmatisme avant tout** : on construit une base solide, puis on itère.
+
 - Pas d'over-engineering
 - Features simples d'abord, complexité ensuite
 - Tester régulièrement sur mobile
@@ -43,15 +45,15 @@ Phase 5 : Polish & Amélioration           ⏳ À VENIR
 
 **Objectif** : Préparer l'environnement de développement
 
-| Tâche | Statut | Responsable |
-|-------|--------|-------------|
-| Initialiser projet Expo + TypeScript | ✅ | Claude |
-| Structure de navigation (Expo Router) | ✅ | Claude |
-| Configuration Git + GitHub | ✅ | Équipe |
-| Documentation (ARCHITECTURE, CONTRIBUTING, SETUP) | ✅ | Claude |
-| Types TypeScript de base | ✅ | Claude |
-| Constantes du jeu (formules XP, thème) | ✅ | Claude |
-| Configuration environnements (dev/staging/prod) | ✅ | Claude |
+| Tâche                                             | Statut | Responsable |
+| ------------------------------------------------- | ------ | ----------- |
+| Initialiser projet Expo + TypeScript              | ✅     | Claude      |
+| Structure de navigation (Expo Router)             | ✅     | Claude      |
+| Configuration Git + GitHub                        | ✅     | Équipe      |
+| Documentation (ARCHITECTURE, CONTRIBUTING, SETUP) | ✅     | Claude      |
+| Types TypeScript de base                          | ✅     | Claude      |
+| Constantes du jeu (formules XP, thème)            | ✅     | Claude      |
+| Configuration environnements (dev/staging/prod)   | ✅     | Claude      |
 
 **Commit initial** : `b7977d1`
 
@@ -68,6 +70,7 @@ Phase 5 : Polish & Amélioration           ⏳ À VENIR
 **Status** : TERMINÉ (commit: 286dc6d)
 
 **Tâches** :
+
 - [x] Créer le projet Supabase (dashboard)
 - [x] Configurer les variables `.env` (URLs, keys)
 - [x] Créer le schéma de base de données (migrations SQL)
@@ -82,10 +85,12 @@ Phase 5 : Polish & Amélioration           ⏳ À VENIR
 - [x] Tester les connexions depuis l'app
 
 **Fichiers clés** :
+
 - `supabase/migrations/001_initial_schema.sql`
 - `apps/mobile/.env`
 
 **Critères de "done"** :
+
 - Projet Supabase créé et accessible
 - Schema DB déployé
 - App peut se connecter à Supabase
@@ -99,6 +104,7 @@ Phase 5 : Polish & Amélioration           ⏳ À VENIR
 **Status** : TERMINÉ (commit: 85630c2, PR #2)
 
 **Tâches** :
+
 - [x] Créer le service `src/services/auth.service.ts`
   - [x] Fonction `signUp(email, password, characterName)`
   - [x] Fonction `signIn(email, password)`
@@ -113,6 +119,7 @@ Phase 5 : Polish & Amélioration           ⏳ À VENIR
 - [x] Gérer la persistance de session
 
 **Fichiers clés** :
+
 - `apps/mobile/src/services/auth.service.ts`
 - `apps/mobile/src/stores/authStore.ts`
 - `apps/mobile/app/(auth)/login.tsx`
@@ -120,6 +127,7 @@ Phase 5 : Polish & Amélioration           ⏳ À VENIR
 - `apps/mobile/app/index.tsx`
 
 **Critères de "done"** :
+
 - ✅ Un utilisateur peut créer un compte
 - ✅ Un utilisateur peut se connecter
 - ✅ La session persiste au redémarrage de l'app
@@ -134,16 +142,19 @@ Phase 5 : Polish & Amélioration           ⏳ À VENIR
 **Status** : TERMINÉ (commit: c9f0d76, PR #3)
 
 **Tâches** :
+
 - [x] À l'inscription, créer automatiquement un `character`
 - [x] Initialiser les 5 `domain_skills` à niveau 1
 - [x] Nom du personnage = nom fourni à l'inscription
 - [x] Valeurs par défaut : level 1, 0 XP, 0 coins, humeur neutre
 
 **Fichiers clés** :
+
 - `apps/mobile/src/services/character.service.ts`
 - `apps/mobile/src/stores/authStore.ts`
 
 **Critères de "done"** :
+
 - ✅ Après signup, un character est créé en DB
 - ✅ Les 5 domain_skills sont initialisés
 
@@ -160,6 +171,7 @@ Phase 5 : Polish & Amélioration           ⏳ À VENIR
 **Status** : TERMINÉ (commit: b32e9a7, PR #4)
 
 **Tâches** :
+
 - [x] Créer `src/services/character.service.ts`
   - [x] `getCharacter(userId)`
   - [x] `getDomainSkills(characterId)`
@@ -174,12 +186,14 @@ Phase 5 : Polish & Amélioration           ⏳ À VENIR
 - [x] Calcul automatique des niveaux (XP → Level)
 
 **Fichiers clés** :
+
 - `apps/mobile/src/services/character.service.ts`
 - `apps/mobile/src/stores/characterStore.ts`
 - `apps/mobile/app/(tabs)/home.tsx`
 - `apps/mobile/src/utils/xpCalculator.ts`
 
 **Critères de "done"** :
+
 - ✅ L'écran Home affiche les vraies données de la DB
 - ✅ Les barres de progression sont fonctionnelles
 - ✅ Le niveau se calcule automatiquement depuis l'XP
@@ -193,6 +207,7 @@ Phase 5 : Polish & Amélioration           ⏳ À VENIR
 **Status** : TERMINÉ (commit: 32120f0, PR #5)
 
 **Tâches** :
+
 - [x] Créer `src/services/habits.service.ts`
   - [x] `getHabits(characterId)`
   - [x] `createHabit(characterId, domain, name, difficulty)`
@@ -209,12 +224,14 @@ Phase 5 : Polish & Amélioration           ⏳ À VENIR
   - [x] Difficulté (facile/moyen/difficile)
 
 **Fichiers clés** :
+
 - `apps/mobile/src/services/habits.service.ts`
 - `apps/mobile/src/stores/habitsStore.ts`
 - `apps/mobile/app/(tabs)/habits/index.tsx`
 - `apps/mobile/app/(tabs)/habits/new.tsx`
 
 **Critères de "done"** :
+
 - ✅ L'utilisateur peut créer/modifier/supprimer des habitudes
 - ✅ Les habitudes s'affichent correctement
 
@@ -227,6 +244,7 @@ Phase 5 : Polish & Amélioration           ⏳ À VENIR
 **Status** : TERMINÉ (commit: 5323d8e, PR #6)
 
 **Tâches** :
+
 - [x] Créer `src/services/habitLogs.service.ts`
   - [x] `completeHabit(habit, characterId)`
   - [x] `uncompleteHabit(habitId, characterId)`
@@ -239,11 +257,13 @@ Phase 5 : Polish & Amélioration           ⏳ À VENIR
 - [x] Empêcher la validation multiple le même jour
 
 **Fichiers clés** :
+
 - `apps/mobile/src/services/habitLogs.service.ts`
 - `apps/mobile/src/stores/habitsStore.ts`
 - `supabase/migrations/002_habit_log_trigger.sql`
 
 **Critères de "done"** :
+
 - ✅ Cocher une habitude donne XP et coins
 - ✅ Le personnage monte en XP
 - ✅ Le domain_skill monte en XP
@@ -252,6 +272,7 @@ Phase 5 : Polish & Amélioration           ⏳ À VENIR
 ---
 
 **Note** : Les fonctionnalités suivantes ont été intégrées dans [0006] et [0008] :
+
 - Calcul des niveaux et progression (via `xpCalculator.ts`)
 - Écran d'accueil / Dashboard (dans `home.tsx`)
 
@@ -268,6 +289,7 @@ Phase 5 : Polish & Amélioration           ⏳ À VENIR
 **Status** : TERMINÉ (commit: 70a3335, PR #7)
 
 **Tâches** :
+
 - [x] Utiliser `last_activity_date` existant dans `characters`
 - [x] Créer `streakCalculator.ts` avec logique de calcul
 - [x] Calculer le streak :
@@ -280,11 +302,13 @@ Phase 5 : Polish & Amélioration           ⏳ À VENIR
 - [x] Correction race condition avec trigger DB
 
 **Fichiers clés** :
+
 - `apps/mobile/src/utils/streakCalculator.ts`
 - `apps/mobile/src/services/character.service.ts`
 - `apps/mobile/src/services/habitLogs.service.ts`
 
 **Critères de "done"** :
+
 - ✅ Le streak s'incrémente correctement
 - ✅ Le streak se reset après 1 jour d'inactivité
 - ✅ Bonus aux milestones fonctionnel (7j=10 coins, etc.)
@@ -298,6 +322,7 @@ Phase 5 : Polish & Amélioration           ⏳ À VENIR
 **Status** : TERMINÉ (commit: 8d08a30, PR #8)
 
 **Tâches** :
+
 - [x] Créer `decayCalculator.ts` avec logique de decay
   - [x] Fonction `calculateDecay()` pour calculer le decay d'un domaine
   - [x] Fonction `calculateDecayForAllDomains()` pour batch processing
@@ -308,6 +333,7 @@ Phase 5 : Polish & Amélioration           ⏳ À VENIR
 - [x] **Bug fix** : Corriger les barres de progression XP
 
 **Fichiers clés** :
+
 - `apps/mobile/src/utils/decayCalculator.ts`
 - `apps/mobile/src/services/character.service.ts`
 - `apps/mobile/src/stores/characterStore.ts`
@@ -316,6 +342,7 @@ Phase 5 : Polish & Amélioration           ⏳ À VENIR
 - `apps/mobile/src/components/DomainSkillCard.tsx`
 
 **Critères de "done"** :
+
 - ✅ Après 7 jours d'inactivité, le niveau du domaine baisse
 - ✅ Le niveau ne descend jamais en dessous de la moitié (ou 1)
 - ✅ L'utilisateur est notifié du decay
@@ -330,6 +357,7 @@ Phase 5 : Polish & Amélioration           ⏳ À VENIR
 **Status** : TERMINÉ (commit: 53a69d0, PR #9)
 
 **Tâches** :
+
 - [x] Ajouter 'sad' mood type et emoji 😢
 - [x] Créer `moodCalculator.ts` avec logique de calcul
   - [x] Sad : 3+ jours sans activité
@@ -342,6 +370,7 @@ Phase 5 : Polish & Amélioration           ⏳ À VENIR
 - [x] Afficher carte mood dans home.tsx avec emoji et description
 
 **Fichiers clés** :
+
 - `apps/mobile/src/utils/moodCalculator.ts`
 - `apps/mobile/src/services/character.service.ts`
 - `apps/mobile/src/services/habitLogs.service.ts`
@@ -351,6 +380,7 @@ Phase 5 : Polish & Amélioration           ⏳ À VENIR
 - `apps/mobile/src/constants/game.ts`
 
 **Critères de "done"** :
+
 - ✅ L'humeur change selon l'activité
 - ✅ Visuellement représenté avec emoji et message
 - ✅ Update automatique après actions utilisateur
@@ -364,6 +394,7 @@ Phase 5 : Polish & Amélioration           ⏳ À VENIR
 **Status** : TERMINÉ (commit: 3051083, PR #10)
 
 **Tâches** :
+
 - [x] Créer migration `004_journal_entries.sql` avec table et RLS
 - [x] Créer type `JournalEntry` dans types
 - [x] Créer `journal.service.ts` avec CRUD operations
@@ -372,6 +403,7 @@ Phase 5 : Polish & Amélioration           ⏳ À VENIR
 - [x] Award +5 XP bonus pour entrée de journal
 
 **Fichiers clés** :
+
 - `supabase/migrations/004_journal_entries.sql`
 - `apps/mobile/src/services/journal.service.ts`
 - `apps/mobile/src/components/JournalPromptModal.tsx`
@@ -380,6 +412,7 @@ Phase 5 : Polish & Amélioration           ⏳ À VENIR
 - `apps/mobile/src/types/index.ts`
 
 **Critères de "done"** :
+
 - ✅ L'utilisateur peut écrire un journal après complétion d'habitude
 - ✅ +5 XP bonus si journal rempli
 - ✅ Peut skip sans pénalité
@@ -400,6 +433,7 @@ Phase 5 : Polish & Amélioration           ⏳ À VENIR
 **Status** : TERMINÉ (commit: cd0b5f9, PR #11)
 
 **Tâches** :
+
 - [x] Peupler la table `shop_items` avec des items de base (34 items: cosmetics, decorations, jokers)
 - [x] Créer `src/services/shop.service.ts`
   - [x] `getShopItems()` et `getShopItemsByType()`
@@ -414,6 +448,7 @@ Phase 5 : Polish & Amélioration           ⏳ À VENIR
 - [x] Fix snake_case/camelCase transformation
 
 **Fichiers clés** :
+
 - `supabase/migrations/005_populate_shop_items.sql`
 - `apps/mobile/src/services/shop.service.ts`
 - `apps/mobile/src/stores/shopStore.ts`
@@ -421,6 +456,7 @@ Phase 5 : Polish & Amélioration           ⏳ À VENIR
 - `apps/mobile/src/stores/authStore.ts` (clear shop on logout)
 
 **Critères de "done"** :
+
 - ✅ L'utilisateur peut acheter des items avec ses coins
 - ✅ Les items achetés apparaissent dans son inventaire
 - ✅ Filtrage par type d'item fonctionnel
@@ -436,6 +472,7 @@ Phase 5 : Polish & Amélioration           ⏳ À VENIR
 **Status** : TERMINÉ (commits: dc52a72, 9f43d8b)
 
 **Tâches** :
+
 - [x] Créer `src/services/equipment.service.ts`
   - [x] `getEquippedItems()` - Fetch equipped items avec JOIN shop_items
   - [x] `equipItem()` - Équiper avec validation ownership
@@ -456,6 +493,7 @@ Phase 5 : Polish & Amélioration           ⏳ À VENIR
 - [x] Intégration shop: bouton "⚡ Équiper" pour cosmétiques possédés
 
 **Fichiers clés** :
+
 - `src/services/equipment.service.ts` (NOUVEAU)
 - `src/components/EquipmentModal.tsx` (NOUVEAU)
 - `src/stores/characterStore.ts` (MODIFIÉ)
@@ -463,6 +501,7 @@ Phase 5 : Polish & Amélioration           ⏳ À VENIR
 - `app/(tabs)/shop.tsx` (MODIFIÉ)
 
 **Critères de "done"** :
+
 - ✅ User peut équiper/déséquiper des items
 - ✅ Items équipés visibles sur character screen
 - ✅ Un seul item par slot à la fois
@@ -483,6 +522,7 @@ Phase 5 : Polish & Amélioration           ⏳ À VENIR
 **Responsable** : Dev B
 
 **Tâches** :
+
 - [ ] Intégrer Google Cloud Vision API ou équivalent
 - [ ] Prendre une photo depuis l'app
 - [ ] Envoyer l'image à l'API
@@ -490,10 +530,12 @@ Phase 5 : Polish & Amélioration           ⏳ À VENIR
 - [ ] Permettre le mode "confiance" (sans vérification) en dev
 
 **Fichiers clés** :
+
 - `src/services/photoVerification.service.ts`
 - `src/features/habits/components/PhotoCapture.tsx`
 
 **Critères de "done"** :
+
 - L'utilisateur peut prendre une photo pour valider
 - L'IA détecte le bon type d'objet
 - L'habitude est validée si photo OK
@@ -505,15 +547,18 @@ Phase 5 : Polish & Amélioration           ⏳ À VENIR
 **Responsable** : Dev A
 
 **Tâches** :
+
 - [ ] Configurer Expo Notifications
 - [ ] Notifications quotidiennes (style Duolingo)
 - [ ] Notification de streak en danger
 - [ ] Personnaliser selon l'humeur du personnage
 
 **Fichiers clés** :
+
 - `src/services/notifications.service.ts`
 
 **Critères de "done"** :
+
 - L'utilisateur reçoit des rappels quotidiens
 - Notifications personnalisées
 
@@ -524,12 +569,14 @@ Phase 5 : Polish & Amélioration           ⏳ À VENIR
 **Responsable** : Ensemble
 
 **Tâches** :
+
 - [ ] Animation de level up
 - [ ] Confettis à la validation d'habitude
 - [ ] Transitions fluides
 - [ ] Feedback haptique
 
 **Fichiers clés** :
+
 - `src/components/ui/Animations.tsx`
 
 ---
@@ -539,6 +586,7 @@ Phase 5 : Polish & Amélioration           ⏳ À VENIR
 **Responsable** : Ensemble
 
 **Tâches** :
+
 - [ ] Créer les composants UI de base
   - [ ] Button, Input, Card, Badge
   - [ ] ProgressBar, Avatar, Modal
@@ -547,6 +595,7 @@ Phase 5 : Polish & Amélioration           ⏳ À VENIR
 - [ ] Dark mode (optionnel)
 
 **Fichiers clés** :
+
 - `src/components/ui/`
 
 ---
@@ -556,11 +605,13 @@ Phase 5 : Polish & Amélioration           ⏳ À VENIR
 **Responsable** : Dev B
 
 **Tâches** :
+
 - [ ] Créer la table `quests`
 - [ ] Logique de quêtes hebdomadaires/mensuelles
 - [ ] Récompenses spéciales
 
 **Fichiers clés** :
+
 - `supabase/migrations/004_quests.sql`
 - `src/features/quests/`
 
@@ -571,6 +622,7 @@ Phase 5 : Polish & Amélioration           ⏳ À VENIR
 **Responsable** : Ensemble
 
 **Tâches** :
+
 - [ ] Tests unitaires (utils, formules)
 - [ ] Tests d'intégration (services)
 - [ ] Tests E2E (parcours utilisateur)
@@ -592,6 +644,7 @@ Phase 5 : Polish & Amélioration           ⏳ À VENIR
 Implémenter un système de decay pour les compétences non pratiquées, encourageant la régularité.
 
 **Tâches à faire** :
+
 - [ ] Créer `src/utils/decayCalculator.ts`
   - [ ] Fonction `checkDecay(domainSkill, currentDate)`
   - [ ] Règle : après 7 jours d'inactivité sur un domaine → decay
@@ -602,11 +655,13 @@ Implémenter un système de decay pour les compétences non pratiquées, encoura
 - [ ] Afficher un message si decay appliqué
 
 **Fichiers à créer/modifier** :
+
 - `apps/mobile/src/utils/decayCalculator.ts`
 - `apps/mobile/src/services/character.service.ts`
 - `apps/mobile/app/index.tsx` ou hook d'initialisation
 
 **Critères de "done"** :
+
 - Après 7 jours sans activité sur un domaine, le niveau baisse
 - Le niveau ne descend jamais en dessous de la moitié du niveau actuel
 - L'utilisateur est notifié du decay
@@ -650,21 +705,21 @@ Implémenter un système de decay pour les compétences non pratiquées, encoura
 
 ## Historique des Complétions
 
-| ID | Feature | Date | Dev | Commit | PR |
-|----|---------|------|-----|--------|----|
-| 0000 | Initial setup | 2025-12-21 | Claude | b7977d1 | - |
-| 0003 | Setup Supabase | 2025-12-21 | Claude | 286dc6d | #1 |
-| 0004 | Authentification | 2025-12-21 | Claude | 85630c2 | #2 |
-| 0005 | Création personnage | 2025-12-22 | Claude | c9f0d76 | #3 |
-| 0006 | Affichage & Dashboard | 2025-12-23 | Claude | b32e9a7 | #4 |
-| 0007 | CRUD Habitudes | 2025-12-24 | Claude | 32120f0 | #5 |
-| 0008 | Complétion Habitudes | 2025-12-25 | Claude | 5323d8e | #6 |
-| 0009 | Système de streak | 2025-12-27 | Claude | 70a3335 | #7 |
-| 0010 | Système de decay + Fix XP | 2025-12-27 | Claude | 8d08a30 | #8 |
-| 0011 | Humeur du personnage | 2025-12-30 | Claude | 53a69d0 | #9 |
-| 0012 | Journal quotidien | 2025-12-30 | Claude | 3051083 | #10 |
-| 0013 | Shop basique | 2025-12-30 | Claude | cd0b5f9 | #11 |
-| 0014 | Équipement du personnage | 2025-12-30 | Claude | dc52a72 | TBD |
+| ID   | Feature                   | Date       | Dev    | Commit  | PR  |
+| ---- | ------------------------- | ---------- | ------ | ------- | --- |
+| 0000 | Initial setup             | 2025-12-21 | Claude | b7977d1 | -   |
+| 0003 | Setup Supabase            | 2025-12-21 | Claude | 286dc6d | #1  |
+| 0004 | Authentification          | 2025-12-21 | Claude | 85630c2 | #2  |
+| 0005 | Création personnage       | 2025-12-22 | Claude | c9f0d76 | #3  |
+| 0006 | Affichage & Dashboard     | 2025-12-23 | Claude | b32e9a7 | #4  |
+| 0007 | CRUD Habitudes            | 2025-12-24 | Claude | 32120f0 | #5  |
+| 0008 | Complétion Habitudes      | 2025-12-25 | Claude | 5323d8e | #6  |
+| 0009 | Système de streak         | 2025-12-27 | Claude | 70a3335 | #7  |
+| 0010 | Système de decay + Fix XP | 2025-12-27 | Claude | 8d08a30 | #8  |
+| 0011 | Humeur du personnage      | 2025-12-30 | Claude | 53a69d0 | #9  |
+| 0012 | Journal quotidien         | 2025-12-30 | Claude | 3051083 | #10 |
+| 0013 | Shop basique              | 2025-12-30 | Claude | cd0b5f9 | #11 |
+| 0014 | Équipement du personnage  | 2025-12-30 | Claude | dc52a72 | TBD |
 
 ---
 
