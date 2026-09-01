@@ -1,107 +1,158 @@
 # GrowGame
 
-> Application mobile de gamification de la discipline personnelle.
+> Personal discipline gamification — turn daily habits into an RPG-style adventure where your character evolves as your real-life discipline does.
+
+![Status](https://img.shields.io/badge/status-in%20development-orange)
+![Stack](https://img.shields.io/badge/stack-React%20Native%20%7C%20Expo%20%7C%20TypeScript%20%7C%20Supabase-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
 
 ---
 
-## Concept
+## Overview
 
-GrowGame transforme vos habitudes quotidiennes en aventure. Votre personnage évolue au fur et à mesure que vous progressez dans la vie réelle.
+**GrowGame** is a mobile app that gamifies personal discipline across five life domains:
 
-**5 Domaines de progression :**
-- Études
-- Sport
-- Méditation
-- Lecture
-- Étirements
+- 📚 **Studies**
+- 🏋️ **Sport**
+- 🧘 **Meditation**
+- 📖 **Reading**
+- 🤸 **Stretching**
 
----
+Each domain has its own character that levels up based on the real actions you log every day. Miss a day, your character stalls. Keep going, they grow. The core hypothesis: turning discipline into a visible progression system helps sustain long-term habits.
 
-## Quick Start
+<!-- Screenshots — replace when available -->
+<!--
+<p align="center">
+  <img src="doc/screenshots/home.png" width="230" alt="Home screen"/>
+  <img src="doc/screenshots/quest.png" width="230" alt="Quests"/>
+  <img src="doc/screenshots/stats.png" width="230" alt="Statistics"/>
+</p>
+-->
 
-### Prérequis
-
-- Node.js 18+
-- npm 9+
-- Expo Go sur votre téléphone ([iOS](https://apps.apple.com/app/expo-go/id982107779) / [Android](https://play.google.com/store/apps/details?id=host.exp.exponent))
-
-### Installation
-
-```bash
-# Cloner le repo (token SSH)
-git clone git@github.com:battisteb/GrowGame.git
-cd GrowGame
-
-# Installer les dépendances
-cd apps/mobile
-npm install
-
-# Configurer l'environnement
-cp .env.example .env
-# Éditer .env avec vos clés
-
-# Lancer l'app
-npm start
-```
-
-Scannez le QR code avec Expo Go.
+> Screenshots coming soon.
 
 ---
 
-## Structure du Projet
+## Features
+
+- ✅ Track daily actions across 5 life domains
+- ✅ Character progression system (XP, levels, evolution)
+- ✅ Quests and achievements
+- ✅ Leaderboard
+- ✅ Statistics and history
+- ✅ Local push notifications
+- ✅ Animated UI
+
+---
+
+## Tech stack
+
+| Layer | Technology |
+|---|---|
+| Mobile framework | **React Native** + **Expo** |
+| Language | **TypeScript** |
+| Navigation | **Expo Router** |
+| State management | **Zustand** |
+| Backend / Auth / DB | **Supabase** (PostgreSQL) |
+| Package management | **npm** workspaces (monorepo) |
+
+---
+
+## Project structure
 
 ```
 GrowGame/
 ├── apps/
-│   └── mobile/          # Application React Native (Expo)
+│   └── mobile/              # Main React Native (Expo) application
 ├── packages/
-│   └── shared/          # Code partagé (futur)
-├── supabase/            # Configuration backend
-└── doc/                 # Documentation (Obsidian)
+│   └── shared/              # Shared code between future apps
+├── supabase/
+│   └── migrations/          # Database schema migrations
+├── doc/                     # Design docs, architecture notes
+├── ARCHITECTURE.md          # High-level architecture overview
+├── SETUP.md                 # Detailed setup instructions
+├── CONTRIBUTING.md          # Contribution guidelines
+└── README.md
 ```
+
+---
+
+## Getting started
+
+### Prerequisites
+
+- Node.js **18+**
+- npm **9+**
+- [Expo Go](https://expo.dev/client) installed on a physical device (iOS or Android)
+- A [Supabase](https://supabase.com) project (free tier is enough) for the backend
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/battisteb/GrowGame.git
+cd GrowGame
+
+# Install dependencies
+npm install
+
+# Configure environment
+cp apps/mobile/.env.example apps/mobile/.env
+# Then fill in your Supabase URL and anon key
+```
+
+### Run
+
+```bash
+npm start
+```
+
+Scan the QR code with **Expo Go** to launch the app on your device.
+
+---
+
+## Available scripts
+
+| Command | Description |
+|---|---|
+| `npm start` | Start the Expo dev server |
+| `npm run lint` | Run ESLint |
+| `npm run format` | Run Prettier |
+| `npm run typecheck` | Run the TypeScript compiler in check mode |
+
+See [`SETUP.md`](SETUP.md) for platform-specific setup instructions.
 
 ---
 
 ## Documentation
 
-| Document | Description |
-|----------|-------------|
-| [SETUP.md](doc/SETUP.md) | Guide d'installation détaillé |
-| [ARCHITECTURE.md](doc/ARCHITECTURE.md) | Décisions techniques et architecture |
-| [CONTRIBUTING.md](CONTRIBUTING.md) | Guide de contribution |
-| [TRACE.md](doc/TRACE.md) | Journal des décisions |
+- [`SETUP.md`](SETUP.md) — full setup guide
+- [`ARCHITECTURE.md`](ARCHITECTURE.md) — high-level architecture
+- [`CONTRIBUTING.md`](CONTRIBUTING.md) — how to contribute
+- [`ROADMAP.md`](ROADMAP.md) — planned features and priorities
 
 ---
 
-## Stack Technique
+## Roadmap
 
-| Technologie | Usage |
-|-------------|-------|
-| React Native + Expo | Application mobile |
-| TypeScript | Langage |
-| Expo Router | Navigation |
-| Zustand | State management |
-| Supabase | Backend (Auth, DB, Storage) |
+See [`ROADMAP.md`](ROADMAP.md) for the full backlog. Highlights on the near-term list:
 
----
-
-## Scripts
-
-```bash
-npm start          # Démarrer le serveur de dev
-npm run lint       # Vérifier le code
-npm run format     # Formater le code
-npm run typecheck  # Vérifier les types TypeScript
-```
+- [ ] Onboarding and tutorial
+- [ ] Multi-device sync polish
+- [ ] iOS and Android release builds
+- [ ] Optional social layer (challenges between friends)
 
 ---
 
-## Équipe
+## Author
 
-Projet développé par deux développeurs passionnés.
+Built as a personal project by **Battiste Boungo** — final-year computer engineering student at Polytech Marseille.
+
+- 🌐 [LinkedIn](https://linkedin.com/in/battiste-boungo-793512300)
+- 💻 [GitHub](https://github.com/battisteb)
 
 ---
 
-## Licence
+## License
 
-Privé - Tous droits réservés.
+This project is released under the **MIT License** — see [`LICENSE`](LICENSE) for details.
